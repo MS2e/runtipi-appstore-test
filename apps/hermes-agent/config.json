@@ -1,0 +1,76 @@
+{
+  "name": "Hermes Agent",
+  "id": "hermes-agent",
+  "available": true,
+  "short_desc": "Autonomous AI agent for CLI - automate tasks with natural language",
+  "author": "traianstamatescu",
+  "port": 8080,
+  "categories": [
+    "ai",
+    "automation",
+    "productivity"
+  ],
+  "description": "Hermes is an autonomous AI agent that runs in your terminal. Give it tasks in natural language and watch it execute complex workflows using tools like browsers, file systems, APIs, and more. Privacy-first with local model support.",
+  "tipi_version": 2,
+  "version": "v1.0.0",
+  "source": "https://github.com/traianstamatescu/hermes-agent",
+  "exposable": true,
+  "supported_architectures": [
+    "arm64",
+    "amd64"
+  ],
+  "created_at": 1745082405284,
+  "updated_at": 1745674974072,
+  "dynamic_config": true,
+  "form_fields": [
+    {
+      "label": "API Provider",
+      "key": "API_PROVIDER",
+      "type": "select",
+      "options": [
+        {
+          "label": "OpenAI",
+          "value": "openai"
+        },
+        {
+          "label": "Anthropic",
+          "value": "anthropic"
+        },
+        {
+          "label": "Local (LM Studio)",
+          "value": "local"
+        }
+      ],
+      "default": "openai",
+      "required": true
+    },
+    {
+      "label": "API Key",
+      "key": "API_KEY",
+      "type": "password",
+      "required": false,
+      "help_text": "Your API key for the selected provider. Leave empty for local models."
+    },
+    {
+      "label": "Model Name",
+      "key": "MODEL_NAME",
+      "type": "text",
+      "default": "gpt-4o",
+      "help_text": "Model to use (e.g., gpt-4o, claude-sonnet-4, or local model name)"
+    },
+    {
+      "label": "Enable API Server",
+      "key": "API_SERVER_ENABLED",
+      "type": "checkbox",
+      "default": true,
+      "help_text": "Enable web API for OpenWebUI integration"
+    },
+    {
+      "label": "API Server Port",
+      "key": "API_SERVER_PORT",
+      "type": "text",
+      "default": "8080",
+      "help_text": "Port for the API server"
+    }
+  ]
+}

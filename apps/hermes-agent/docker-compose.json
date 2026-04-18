@@ -1,0 +1,44 @@
+{
+  "services": [
+    {
+      "name": "hermes-agent",
+      "image": "traianstamatescu/hermes-agent:latest",
+      "isMain": true,
+      "internalPort": "8080",
+      "environment": [
+        {
+          "key": "API_PROVIDER",
+          "value": "${API_PROVIDER}"
+        },
+        {
+          "key": "API_KEY",
+          "value": "${API_KEY}"
+        },
+        {
+          "key": "MODEL_NAME",
+          "value": "${MODEL_NAME}"
+        },
+        {
+          "key": "API_SERVER_ENABLED",
+          "value": "${API_SERVER_ENABLED}"
+        },
+        {
+          "key": "API_SERVER_PORT",
+          "value": "${API_SERVER_PORT}"
+        }
+      ],
+      "volumes": [
+        {
+          "name": "hermes-data",
+          "path": "/home/hermes/.hermes"
+        }
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "name": "hermes-data",
+      "type": "named"
+    }
+  ]
+}
