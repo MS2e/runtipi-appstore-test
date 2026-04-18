@@ -3,7 +3,7 @@
     {
       "name": "hermes-agent",
       "image": "nousresearch/hermes-agent:latest",
-      "isMain": false,
+      "isMain": true,
       "internalPort": "8080",
       "environment": [
         {
@@ -44,14 +44,7 @@
           "name": "hermes-data",
           "path": "/opt/data"
         }
-      ],
-      "restart": "unless-stopped"
-    }
-  ],
-  "volumes": [
-    {
-      "name": "hermes-data",
-      "type": "named"
+      ]
     }
   ]
 }

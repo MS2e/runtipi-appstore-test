@@ -11,7 +11,7 @@
     "productivity"
   ],
   "description": "Hermes is an autonomous AI agent with persistent memory, multi-platform gateway (Telegram, Discord, WhatsApp, etc.), and self-improving skills system. Supports both cloud APIs (OpenRouter) and local LLMs (LM Studio, llama.cpp) for privacy-first operation.",
-  "tipi_version": 3,
+  "tipi_version": 2,
   "version": "v1.0.0",
   "source": "https://github.com/NousResearch/hermes-agent",
   "exposable": false,
