@@ -7,8 +7,7 @@
   "port": 8080,
   "categories": [
     "ai",
-    "automation",
-    "productivity"
+    "automation"
   ],
   "description": "Hermes is an autonomous AI agent with persistent memory, multi-platform gateway (Telegram, Discord, WhatsApp, etc.), and self-improving skills system. Supports both cloud APIs (OpenRouter) and local LLMs (LM Studio, llama.cpp) for privacy-first operation.",
   "tipi_version": 2,
@@ -25,21 +24,21 @@
   "form_fields": [
     {
       "label": "OpenRouter API Key",
-      "key": "OPENROUTER_API_KEY",
+      "env_variable": "OPENROUTER_API_KEY",
       "type": "password",
       "required": false,
       "help_text": "Get your key at https://openrouter.ai/keys (for cloud LLM access)"
     },
     {
       "label": "Telegram Bot Token",
-      "key": "TELEGRAM_BOT_TOKEN",
+      "env_variable": "TELEGRAM_BOT_TOKEN",
       "type": "password",
       "required": false,
       "help_text": "Get from @BotFather on Telegram (for messaging gateway)"
     },
     {
       "label": "Default Model",
-      "key": "DEFAULT_MODEL",
+      "env_variable": "DEFAULT_MODEL",
       "type": "text",
       "required": false,
       "default": "anthropic/claude-sonnet-4",
@@ -47,7 +46,7 @@
     },
     {
       "label": "Local Model URL",
-      "key": "LOCAL_MODEL_URL",
+      "env_variable": "LOCAL_MODEL_URL",
       "type": "text",
       "required": false,
       "default": "",
@@ -55,15 +54,17 @@
     },
     {
       "label": "Enable API Server",
-      "key": "API_SERVER_ENABLED",
-      "type": "checkbox",
+      "env_variable": "API_SERVER_ENABLED",
+      "type": "boolean",
+      "required": false,
       "default": false,
       "help_text": "Enable web API server for OpenWebUI integration"
     },
     {
       "label": "API Server Port",
-      "key": "API_SERVER_PORT",
+      "env_variable": "API_SERVER_PORT",
       "type": "text",
+      "required": false,
       "default": "8080",
       "help_text": "Port for the API server (requires Enable API Server)"
     }
