@@ -1,0 +1,16 @@
+Hermes Agent Logo
+================
+
+This is a custom-created logo for the Hermes Agent RunTipi app.
+
+Design elements:
+- Dark blue background (#1a1a2e)
+- Glowing blue accents (#4a9eff) 
+- Bot head with antenna (representing AI agent)
+- Wings on both sides (Hermes = messenger god with winged sandals)
+- Concentric rings (symbolizing "grows with you")
+
+The logo represents Hermes as a self-improving AI agent that:
+- Has "wings" for speed and autonomy
+- Features a bot head for AI capabilities  
+- Shows growth rings for the learning/improvement aspect
