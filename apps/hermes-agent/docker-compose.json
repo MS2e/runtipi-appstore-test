@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "2",
+  "schemaVersion": 2,
   "services": [
     {
       "name": "hermes-agent",
@@ -19,7 +19,7 @@
       "volumes": [
         {
           "name": "hermes-data",
-          "path": "/opt/data"
+          "containerPath": "/opt/data"
         }
       ]
     }
