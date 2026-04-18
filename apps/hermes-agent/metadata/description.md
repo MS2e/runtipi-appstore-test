@@ -1,106 +1,135 @@
 # Hermes Agent
 
-**Autonomous AI agent for CLI - automate tasks with natural language**
+**Autonomous AI agent with persistent memory, multi-platform gateway, and self-improving skills system**
 
-Hermes is a privacy-first autonomous AI agent that runs directly in your terminal. Give it tasks in natural language and watch it execute complex workflows using a powerful suite of tools including browsers, file systems, APIs, databases, and more.
+Hermes is an open-source AI agent framework that runs autonomously in your terminal or as a service. It features persistent memory across sessions, a multi-platform gateway (Telegram, Discord, WhatsApp, Slack, etc.), and a self-improving skills system. Supports both cloud APIs (OpenRouter) and local LLMs (LM Studio, llama.cpp) for privacy-first operation.
 
-## Features
+## Key Features
 
 ### 🤖 Autonomous Task Execution
-- Give Hermes a task in natural language
-- It plans, executes, and adapts autonomously
-- Handles complex multi-step workflows
+- Give Hermes tasks in natural language via CLI or messaging platforms
+- Plans and executes complex multi-step workflows autonomously
+- Persistent memory survives across sessions
+
+### 🌐 Multi-Platform Gateway
+- **Telegram**: Full bot integration with conversation threads
+- **Discord**: Slash commands and DM support
+- **WhatsApp**: Bridge via WhatsApp Business API
+- **Slack, Signal, QQ Bot** and more
+- Each platform maintains separate conversation context
+
+### 🧠 Persistent Memory System
+- **Long-term memory**: SQLite database with FTS5 full-text search
+- **Session history**: Complete conversation logs, searchable
+- **Skills system**: Reusable workflows for common tasks
+- **Cross-session context**: Remembers important facts and preferences
 
 ### 🛠️ Powerful Tool Suite
-- **Browser Automation**: Navigate, click, type, extract data from websites
-- **File Operations**: Read, write, search, and edit files
-- **Terminal Commands**: Execute shell commands safely
-- **Web Search**: Private search via SearXNG or other backends
-- **APIs**: Interact with GitHub, Google Workspace, and more
-- **Local Models**: Run with LM Studio for complete privacy
+- **Browser Automation**: Playwright-based web interaction
+- **File Operations**: Read, write, search, patch files safely
+- **Terminal Commands**: Shell execution with approval system
+- **Web Search**: Private search via SearXNG, Firecrawl, Tavily
+- **Code Execution**: Sandboxed Python with tool access
+- **Subagent Delegation**: Spawn parallel workers for complex tasks
 
-### 🔒 Privacy-First Design
-- Supports local LLM inference (LM Studio, llama.cpp)
-- No data leaves your machine when using local models
-- Self-hosted search via SearXNG
-- Full control over your data and workflows
+### 🔒 Privacy-First Options
+- **Cloud APIs**: OpenRouter (60+ models), direct provider APIs
+- **Local Models**: LM Studio, llama.cpp, Ollama integration
+- **Self-hosted search**: SearXNG backend option
+- No data leaves your infrastructure when using local options
 
 ### 📚 Skills System
-- Reusable workflows for common tasks
-- Community-contributed skills
-- Extend Hermes with custom capabilities
+- Community-contributed reusable workflows
+- Categories: GitHub, DevOps, ML/MLOps, Creative, Productivity, etc.
+- Self-improving: Agent can create new skills from experience
+- Platform-aware: Skills adapt to Telegram, Discord, CLI context
 
 ## Use Cases
 
 ### Development & DevOps
-- Code review and debugging
-- Git workflow management
-- CI/CD pipeline operations
-- Server administration
+- Code review and debugging assistance
+- Git workflow management (branches, PRs, commits)
+- GitHub repository operations
+- CI/CD pipeline management
 
-### Research & Data
-- Academic paper discovery (arXiv)
-- Blog monitoring and RSS feeds
+### Research & Data Science
+- Academic paper discovery (arXiv integration)
+- Blog monitoring and RSS feed tracking
 - Data analysis with Jupyter notebooks
 - Web scraping and data extraction
 
-### Productivity
+### Productivity & Automation
 - Email management via IMAP/SMTP
 - Calendar operations (Google Calendar)
 - Document creation and editing
-- Smart home automation
+- Smart home automation (Home Assistant)
 
 ### Creative Projects
-- ASCII art generation
+- ASCII art generation with pyfiglet/cowsay
 - Music generation (Suno, AudioCraft)
 - Image generation (Pollinations, Stable Diffusion)
 - Video creation with Manim
 
-## Configuration
+## Configuration via RunTipi
 
-### Environment Variables
+### Required Fields (Optional - Choose Your Setup)
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `API_PROVIDER` | API provider (openai, anthropic, local) | openai |
-| `API_KEY` | API key for cloud providers | - |
-| `MODEL_NAME` | Model name to use | gpt-4o |
-| `API_SERVER_ENABLED` | Enable web API server | false |
-| `API_SERVER_PORT` | Port for API server | 8080 |
+| Field | Description |
+|-------|-------------|
+| **OpenRouter API Key** | Get at https://openrouter.ai/keys - gives access to 60+ models from multiple providers |
+| **Telegram Bot Token** | Get from @BotFather - enables Telegram gateway for messaging interface |
 
-### Local Model Setup
+### Optional Configuration
 
-For complete privacy, run Hermes with local models:
+| Field | Default | Description |
+|-------|---------|-------------|
+| **Default Model** | `anthropic/claude-sonnet-4` | Default LLM model for cloud APIs |
+| **Local Model URL** | - | URL for local LLM server (e.g. `http://host.docker.internal:1234/v1` for LM Studio) |
+| **Enable API Server** | Disabled | Enable web API server for OpenWebUI or custom integrations |
+| **API Server Port** | `8080` | Port for the API server |
 
-1. Install [LM Studio](https://lmstudio.ai/)
+## Setup Options
+
+### Option 1: Cloud APIs (Easiest)
+1. Get an OpenRouter API key at https://openrouter.ai/keys
+2. Enter it in the RunTipi configuration
+3. Hermes will use cloud LLMs (pay-per-use, 60+ models available)
+
+### Option 2: Local Models (Privacy-First)
+1. Install LM Studio on the host machine
 2. Download a model (e.g., qwen3.5-122b, llama-3)
 3. Start LM Studio server on port 1234
-4. Configure Hermes:
-   ```bash
-   hermes config set api_provider local
-   hermes config set model_name your-model-name
-   ```
+4. Set Local Model URL to `http://host.docker.internal:1234/v1`
+5. No API key needed - completely offline operation
 
-## Integration with OpenWebUI
+### Option 3: Telegram Gateway
+1. Create a bot with @BotFather on Telegram
+2. Get the bot token
+3. Enter it in RunTipi configuration
+4. Chat with Hermes directly on Telegram!
 
-Hermes can be accessed via web interface:
+## Persistent Data
 
-1. Enable API server in Hermes config
-2. Add Hermes as a tool in OpenWebUI
-3. Configure endpoint: `http://hermes-agent:8080/v1`
+Hermes stores data in a named volume (`hermes-data`):
+- `~/.hermes/config.yaml` - User configuration
+- `~/.hermes/sessions/` - Conversation history
+- `~/.hermes/skills/` - Installed skills
+- `~/.hermes/memory.db` - Persistent memory database
 
-## Docker Deployment
-
-This RunTipi app deploys Hermes in a container with:
-- Persistent data volume for configs and skills
-- Configurable API provider and model
-- Optional web API server for remote access
+Data persists across container restarts and updates.
 
 ## Source & Documentation
 
-- **GitHub**: https://github.com/traianstamatescu/hermes-agent
-- **Documentation**: https://hermes-agent.com
+- **GitHub**: https://github.com/NousResearch/hermes-agent
+- **Documentation**: https://hermes-agent.nousresearch.com/
+
+## Docker Image
+
+This app uses the official image: `nousresearch/hermes-agent:latest`
+- **Pulls**: 286,000+
+- **Architectures**: amd64, arm64
+- **Last Updated**: Regular updates
 
 ## License
 
-MIT License - see the [GitHub repository](https://github.com/traianstamatescu/hermes-agent) for details.
+MIT License - see the [GitHub repository](https://github.com/NousResearch/hermes-agent) for details.

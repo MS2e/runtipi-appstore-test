@@ -2,21 +2,25 @@
   "services": [
     {
       "name": "hermes-agent",
-      "image": "traianstamatescu/hermes-agent:latest",
-      "isMain": true,
+      "image": "nousresearch/hermes-agent:latest",
+      "isMain": false,
       "internalPort": "8080",
       "environment": [
         {
-          "key": "API_PROVIDER",
-          "value": "${API_PROVIDER}"
+          "key": "OPENROUTER_API_KEY",
+          "value": "${OPENROUTER_API_KEY}"
         },
         {
-          "key": "API_KEY",
-          "value": "${API_KEY}"
+          "key": "TELEGRAM_BOT_TOKEN",
+          "value": "${TELEGRAM_BOT_TOKEN}"
         },
         {
-          "key": "MODEL_NAME",
-          "value": "${MODEL_NAME}"
+          "key": "DEFAULT_MODEL",
+          "value": "${DEFAULT_MODEL}"
+        },
+        {
+          "key": "LOCAL_MODEL_URL",
+          "value": "${LOCAL_MODEL_URL}"
         },
         {
           "key": "API_SERVER_ENABLED",
@@ -25,14 +29,23 @@
         {
           "key": "API_SERVER_PORT",
           "value": "${API_SERVER_PORT}"
+        },
+        {
+          "key": "HERMES_UID",
+          "value": "10000"
+        },
+        {
+          "key": "HERMES_GID",
+          "value": "10000"
         }
       ],
       "volumes": [
         {
           "name": "hermes-data",
-          "path": "/home/hermes/.hermes"
+          "path": "/opt/data"
         }
-      ]
+      ],
+      "restart": "unless-stopped"
     }
   ],
   "volumes": [
