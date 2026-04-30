@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 2,
   "services": [
     {
       "name": "sonnensystem",
@@ -6,16 +7,13 @@
       "isMain": true,
       "internalPort": "80",
       "volumes": [
-        "./web:/usr/share/nginx/html:ro"
-      ],
-      "restartPolicy": "unless-stopped",
-      "logging": {
-        "driver": "json-file",
-        "options": {
-          "max-size": "1m",
-          "max-file": "3"
+        {
+          "host": "./web",
+          "container": "/usr/share/nginx/html",
+          "readOnly": true
         }
-      }
+      ],
+      "restartPolicy": "unless-stopped"
     }
   ]
 }
