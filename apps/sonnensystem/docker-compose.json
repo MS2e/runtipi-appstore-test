@@ -8,8 +8,8 @@
       "internalPort": "80",
       "volumes": [
         {
-          "host": "./web",
-          "container": "/usr/share/nginx/html",
+          "hostPath": "./web",
+          "containerPath": "/usr/share/nginx/html",
           "readOnly": true
         }
       ],
