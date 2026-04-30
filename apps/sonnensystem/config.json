@@ -1,0 +1,24 @@
+{
+  "name": "Sonnensystem 3D",
+  "id": "sonnensystem",
+  "available": true,
+  "short_desc": "Interaktive 3D-Simulation des Sonnensystems mit allen Planeten, Monden und Asteroiden",
+  "author": "Mario & Hermi",
+  "port": 80,
+  "categories": [
+    "media",
+    "featured"
+  ],
+  "description": "Spektakuläre interaktive 3D-Simulation unseres gesamten Sonnensystems. Alle 8 Planeten mit prozeduralen Texturen, Sonne mit Glow-Effekt, Saturnringe, Monde aller Planeten, Asteroidengürtel mit 3000 Objekten und 20.000-Sterne-Hintergrund. Interaktive Kamera, Zoom auf Planeten-Klick, Infoboxen mit Fakten.",
+  "tipi_version": 2,
+  "version": "1.0.0",
+  "source": "https://github.com/MS2e/runtipi-appstore-test",
+  "exposable": true,
+  "supported_architectures": [
+    "arm64",
+    "amd64"
+  ],
+  "created_at": 1746076800000,
+  "updated_at": 1746076800000,
+  "form_fields": []
+}
