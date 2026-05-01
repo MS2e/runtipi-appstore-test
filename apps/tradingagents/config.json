@@ -17,50 +17,32 @@
   "dynamic_config": true,
   "form_fields": [
     {
-      "name": "TRADINGAGENTS_LLM_PROVIDER",
+      "type": "text",
       "label": "LLM Provider",
-      "type": "select",
-      "hint": "KI-Provider für die Analyse. Der zugehörige API-Key muss unten angegeben werden.",
-      "config": {
-        "key": "TRADINGAGENTS_LLM_PROVIDER",
-        "options": [
-          { "value": "openai", "label": "OpenAI (GPT-5.4, GPT-5.4-mini)" },
-          { "value": "anthropic", "label": "Anthropic (Claude)" },
-          { "value": "google", "label": "Google (Gemini)" },
-          { "value": "deepseek", "label": "DeepSeek" },
-          { "value": "openrouter", "label": "OpenRouter" }
-        ]
-      }
+      "env_variable": "TRADINGAGENTS_LLM_PROVIDER",
+      "hint": "KI-Provider für die Analyse (openai, anthropic, google, deepseek, openrouter)",
+      "default": "openai"
     },
     {
-      "name": "TRADINGAGENTS_API_KEY",
-      "label": "LLM API Key",
       "type": "password",
-      "hint": "API Key des gewählten LLM Providers (z.B. OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)",
-      "required": true,
-      "config": {
-        "key": "TRADINGAGENTS_API_KEY"
-      }
+      "label": "LLM API Key",
+      "env_variable": "TRADINGAGENTS_API_KEY",
+      "hint": "API Key des gewählten LLM Providers (z.B. OPENAI_API_KEY, ANTHROPIC_API_KEY)",
+      "required": true
     },
     {
-      "name": "TRADINGAGENTS_DEFAULT_MODEL",
+      "type": "text",
       "label": "Default Model",
-      "type": "text",
+      "env_variable": "TRADINGAGENTS_DEFAULT_MODEL",
       "hint": "Default LLM Model für Analysen (z.B. gpt-5.4, claude-sonnet-4-20250514, deepseek-chat)",
-      "config": {
-        "key": "TRADINGAGENTS_DEFAULT_MODEL",
-        "default": "gpt-5.4"
-      }
+      "default": "gpt-5.4"
     },
     {
-      "name": "TRADINGAGENTS_INITIAL_TICKER",
-      "label": "Initialer Ticker (optional)",
       "type": "text",
+      "label": "Initialer Ticker",
+      "env_variable": "TRADINGAGENTS_INITIAL_TICKER",
       "hint": "Vorbelegter Aktien-Ticker für die erste Analyse (z.B. AAPL, TSLA, MSFT)",
-      "config": {
-        "key": "TRADINGAGENTS_INITIAL_TICKER",
-        "default": "AAPL"
-      }
+      "default": "AAPL"
     }
   ]
 }
