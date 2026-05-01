@@ -6,16 +6,6 @@
       "image": "nousresearch/hermes-agent:latest",
       "isMain": true,
       "internalPort": 8080,
-      "environment": [
-        { "key": "OPENROUTER_API_KEY", "value": "${OPENROUTER_API_KEY}" },
-        { "key": "TELEGRAM_BOT_TOKEN", "value": "${TELEGRAM_BOT_TOKEN}" },
-        { "key": "DEFAULT_MODEL", "value": "${DEFAULT_MODEL}" },
-        { "key": "LOCAL_MODEL_URL", "value": "${LOCAL_MODEL_URL}" },
-        { "key": "API_SERVER_ENABLED", "value": "${API_SERVER_ENABLED}" },
-        { "key": "API_SERVER_PORT", "value": "${API_SERVER_PORT}" },
-        { "key": "HERMES_UID", "value": "10000" },
-        { "key": "HERMES_GID", "value": "10000" }
-      ],
       "volumes": [
         {
           "hostPath": "${APP_DATA_DIR}/data",
