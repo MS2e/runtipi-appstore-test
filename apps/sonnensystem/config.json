@@ -20,5 +20,6 @@
   ],
   "created_at": 1746076800000,
   "updated_at": 1746076800000,
+  "dynamic_config": true,
   "form_fields": []
 }
