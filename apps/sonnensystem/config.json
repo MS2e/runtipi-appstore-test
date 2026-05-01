@@ -4,7 +4,7 @@
   "available": true,
   "short_desc": "Interaktive 3D-Simulation des Sonnensystems mit allen Planeten, Monden und Asteroiden",
   "author": "Mario & Hermi",
-  "port": 80,
+  "port": 8848,
   "categories": [
     "media",
     "featured"
