@@ -5,19 +5,13 @@
   "short_desc": "Autonomous AI agent - Telegram/Discord gateway, local models, self-improving skills",
   "author": "Nous Research",
   "port": 8080,
-  "categories": [
-    "ai",
-    "automation"
-  ],
+  "categories": ["ai", "automation"],
   "description": "Hermes is an autonomous AI agent with persistent memory, multi-platform gateway (Telegram, Discord, WhatsApp, etc.), and self-improving skills system. Supports both cloud APIs (OpenRouter) and local LLMs (LM Studio, llama.cpp) for privacy-first operation.",
   "tipi_version": 2,
   "version": "v1.0.0",
   "source": "https://github.com/NousResearch/hermes-agent",
   "exposable": false,
-  "supported_architectures": [
-    "arm64",
-    "amd64"
-  ],
+  "supported_architectures": ["arm64", "amd64"],
   "created_at": 1745082405284,
   "updated_at": 1745674974072,
   "dynamic_config": true,
@@ -27,14 +21,14 @@
       "env_variable": "OPENROUTER_API_KEY",
       "type": "password",
       "required": false,
-      "help_text": "Get your key at https://openrouter.ai/keys (for cloud LLM access)"
+      "hint": "Get your key at https://openrouter.ai/keys (for cloud LLM access)"
     },
     {
       "label": "Telegram Bot Token",
       "env_variable": "TELEGRAM_BOT_TOKEN",
       "type": "password",
       "required": false,
-      "help_text": "Get from @BotFather on Telegram (for messaging gateway)"
+      "hint": "Get from @BotFather on Telegram (for messaging gateway)"
     },
     {
       "label": "Default Model",
@@ -42,7 +36,7 @@
       "type": "text",
       "required": false,
       "default": "anthropic/claude-sonnet-4",
-      "help_text": "Default LLM model (e.g. anthropic/claude-sonnet-4, openai/gpt-4o)"
+      "hint": "Default LLM model (e.g. anthropic/claude-sonnet-4, openai/gpt-4o)"
     },
     {
       "label": "Local Model URL",
@@ -50,7 +44,7 @@
       "type": "text",
       "required": false,
       "default": "",
-      "help_text": "URL for local LLM server (e.g. http://host.docker.internal:1234/v1 for LM Studio)"
+      "hint": "URL for local LLM server (e.g. http://host.docker.internal:1234/v1 for LM Studio)"
     },
     {
       "label": "Enable API Server",
@@ -58,7 +52,7 @@
       "type": "boolean",
       "required": false,
       "default": false,
-      "help_text": "Enable web API server for OpenWebUI integration"
+      "hint": "Enable web API server for OpenWebUI integration"
     },
     {
       "label": "API Server Port",
@@ -66,7 +60,7 @@
       "type": "text",
       "required": false,
       "default": "8080",
-      "help_text": "Port for the API server (requires Enable API Server)"
+      "hint": "Port for the API server (requires Enable API Server)"
     }
   ]
 }

@@ -1,18 +1,19 @@
 {
+  "schemaVersion": 2,
   "services": [
     {
       "name": "sonnensystem",
       "image": "nginx:alpine",
       "isMain": true,
-      "internalPort": "80",
+      "internalPort": 80,
       "volumes": [
         {
           "hostPath": "${APP_DATA_DIR}/data/web",
           "containerPath": "/usr/share/nginx/html",
-          "readonly": true
+          "readOnly": true
         }
       ],
-      "restartPolicy": "unless-stopped"
+      "restart": "unless-stopped"
     }
   ]
 }
