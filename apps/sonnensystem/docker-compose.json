@@ -7,9 +7,9 @@
       "internalPort": "80",
       "volumes": [
         {
-          "hostPath": "./web",
+          "hostPath": "/data/apps/marios-store/sonnensystem/web",
           "containerPath": "/usr/share/nginx/html",
-          "readOnly": true
+          "readonly": true
         }
       ],
       "restartPolicy": "unless-stopped"

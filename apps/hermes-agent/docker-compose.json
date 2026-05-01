@@ -7,43 +7,20 @@
       "isMain": true,
       "internalPort": 8080,
       "environment": [
-        {
-          "key": "OPENROUTER_API_KEY",
-          "value": "${OPENROUTER_API_KEY}"
-        },
-        {
-          "key": "TELEGRAM_BOT_TOKEN",
-          "value": "${TELEGRAM_BOT_TOKEN}"
-        },
-        {
-          "key": "DEFAULT_MODEL",
-          "value": "${DEFAULT_MODEL}"
-        },
-        {
-          "key": "LOCAL_MODEL_URL",
-          "value": "${LOCAL_MODEL_URL}"
-        },
-        {
-          "key": "API_SERVER_ENABLED",
-          "value": "${API_SERVER_ENABLED}"
-        },
-        {
-          "key": "API_SERVER_PORT",
-          "value": "${API_SERVER_PORT}"
-        },
-        {
-          "key": "HERMES_UID",
-          "value": "10000"
-        },
-        {
-          "key": "HERMES_GID",
-          "value": "10000"
-        }
+        "OPENROUTER_API_KEY=${OPENROUTER_API_KEY}",
+        "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}",
+        "DEFAULT_MODEL=${DEFAULT_MODEL}",
+        "LOCAL_MODEL_URL=${LOCAL_MODEL_URL}",
+        "API_SERVER_ENABLED=${API_SERVER_ENABLED}",
+        "API_SERVER_PORT=${API_SERVER_PORT}",
+        "HERMES_UID=10000",
+        "HERMES_GID=10000"
       ],
       "volumes": [
         {
           "name": "hermes-data",
-          "hostPath": "/opt/data"
+          "hostPath": "/opt/data",
+          "containerPath": "/opt/data"
         }
       ]
     }
