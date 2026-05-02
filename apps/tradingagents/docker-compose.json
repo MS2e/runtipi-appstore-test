@@ -7,6 +7,13 @@
       "isMain": true,
       "internalPort": 8080,
       "command": "/app/start.sh",
+      "environment": {
+        "TRADINGAGENTS_LLM_PROVIDER": "${TRADINGAGENTS_LLM_PROVIDER}",
+        "TRADINGAGENTS_API_KEY": "${TRADINGAGENTS_API_KEY}",
+        "TRADINGAGENTS_DEFAULT_MODEL": "${TRADINGAGENTS_DEFAULT_MODEL}",
+        "TRADINGAGENTS_OUTPUT_LANGUAGE": "${TRADINGAGENTS_OUTPUT_LANGUAGE}",
+        "TRADINGAGENTS_INITIAL_TICKER": "${TRADINGAGENTS_INITIAL_TICKER}"
+      },
       "volumes": [
         {
           "hostPath": "${APP_DATA_DIR}/data/web",

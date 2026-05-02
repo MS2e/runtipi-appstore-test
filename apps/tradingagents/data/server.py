@@ -51,6 +51,22 @@ async def index():
 async def health():
     return {"status": "ok"}
 
+@app.get("/api/env")
+async def env_debug():
+    """Debug endpoint — shows which env vars are set (keys only, values redacted)."""
+    relevant = ["TRADINGAGENTS_LLM_PROVIDER", "TRADINGAGENTS_API_KEY",
+                "TRADINGAGENTS_DEFAULT_MODEL", "TRADINGAGENTS_OUTPUT_LANGUAGE",
+                "TRADINGAGENTS_INITIAL_TICKER",
+                "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY",
+                "DEEPSEEK_API_KEY", "XAI_API_KEY", "OPENROUTER_API_KEY",
+                "DASHSCOPE_API_KEY", "ZHIPU_API_KEY", "AZURE_OPENAI_API_KEY"]
+    result = {}
+    for k in relevant:
+        v = os.getenv(k, "")
+        if v:
+            result[k] = "***" if len(v) > 4 else v
+    return {"env_vars": result}
+
 @app.get("/api/status", response_model=StatusResponse)
 async def get_status():
     provider = os.getenv("TRADINGAGENTS_LLM_PROVIDER", "openai")
