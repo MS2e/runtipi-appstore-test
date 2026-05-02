@@ -17,6 +17,10 @@ if ! python3 -c "import uvicorn" 2>/dev/null; then
     pip install --no-cache-dir uvicorn 2>&1 | tail -1
 fi
 
+if ! python3 -c "import fastapi" 2>/dev/null; then
+    pip install --no-cache-dir fastapi 2>&1 | tail -1
+fi
+
 echo "🚀 Starting TradingAgents Web Server on :8080"
 cd /app
 exec python3 -m uvicorn server:app --host 0.0.0.0 --port 8080

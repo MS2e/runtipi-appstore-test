@@ -8,7 +8,7 @@
     :root {
       --bg: #0a0e17; --card: #111827; --border: #1e293b;
       --primary: #3b82f6; --accent: #10b981; --warn: #f59e0b;
-      --text: #e2e8f0; --muted: #94a3b8; --code: #64748b;
+      --danger: #ef4444; --text: #e2e8f0; --muted: #94a3b8; --code: #64748b;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
@@ -25,24 +25,48 @@
     .card:hover { border-color: var(--primary); }
     .card h3 { font-size: 1.05rem; margin-bottom: .5rem; color: var(--accent); }
     .card p { font-size: .9rem; color: var(--muted); }
-    .agent-list { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
-    .agent { background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.25); border-radius: 8px; padding: .35rem .75rem; font-size: .8rem; color: var(--primary); }
     .form-area { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; }
     .form-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 1rem; }
     .form-group { flex: 1; min-width: 180px; }
     .form-group label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: .35rem; }
-    .form-group input, .form-group select { width: 100%; padding: .6rem .8rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: .95rem; outline: none; }
-    .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
-    button#analyze { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; border-radius: 8px; padding: .65rem 2rem; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+    .form-group input { width: 100%; padding: .6rem .8rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: .95rem; outline: none; }
+    .form-group input:focus { border-color: var(--primary); }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .25rem; }
+    .checkbox-group label { display: flex; align-items: center; gap: .4rem; font-size: .9rem; color: var(--text); cursor: pointer; }
+    .checkbox-group input[type="checkbox"] { accent-color: var(--primary); width: 16px; height: 16px; }
+    button#analyze { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; border-radius: 8px; padding: .65rem 2rem; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity .2s; white-space: nowrap; }
     button#analyze:hover { opacity: .85; }
     button#analyze:disabled { opacity: .4; cursor: not-allowed; }
-    #status { margin-top: 1.5rem; padding: 1rem; border-radius: 8px; font-size: .9rem; white-space: pre-wrap; max-height: 400px; overflow-y: auto; display: none; }
-    #status.info { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25); color: var(--primary); }
-    #status.success { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.25); color: var(--accent); }
-    #status.error { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); color: #ef4444; }
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--muted); border-top-color: var(--primary); border-radius: 50%; animation: spin .6s linear infinite; margin-right: .5rem; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    pre { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; font-size: .85rem; color: var(--code); margin-top: 1rem; }
+
+    /* Signal badge */
+    .signal-badge { display: inline-block; padding: .5rem 1.5rem; border-radius: 99px; font-size: 1.5rem; font-weight: 700; margin: .5rem 0; }
+    .signal-buy { background: rgba(16,185,129,.2); color: #34d399; border: 2px solid #34d399; }
+    .signal-overweight { background: rgba(59,130,246,.2); color: #60a5fa; border: 2px solid #60a5fa; }
+    .signal-hold { background: rgba(245,158,11,.2); color: #fbbf24; border: 2px solid #fbbf24; }
+    .signal-underweight { background: rgba(249,115,22,.2); color: #fb923c; border: 2px solid #fb923c; }
+    .signal-sell { background: rgba(239,68,68,.2); color: #f87171; border: 2px solid #f87171; }
+
+    /* Results area */
+    #results { display: none; margin-top: 1.5rem; }
+    .result-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1rem; overflow: hidden; }
+    .result-header { padding: 1rem 1.5rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .result-header:hover { background: rgba(59,130,246,.05); }
+    .result-header h3 { font-size: 1rem; color: var(--text); margin: 0; }
+    .result-header .arrow { transition: transform .2s; color: var(--muted); }
+    .result-header.open .arrow { transform: rotate(180deg); }
+    .result-body { padding: 0 1.5rem; max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s ease; }
+    .result-body.open { max-height: 600px; overflow-y: auto; padding: 1rem 1.5rem; }
+    .result-body pre { white-space: pre-wrap; word-break: break-word; font-size: .85rem; color: var(--code); line-height: 1.7; margin: 0; }
+    .progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 1rem 0; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 2px; animation: progress 60s linear; width: 0%; }
+    @keyframes progress { to { width: 100%; } }
+    .status-msg { padding: 1rem; border-radius: 8px; font-size: .9rem; }
+    .status-msg.info { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25); color: var(--primary); }
+    .status-msg.success { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.25); color: var(--accent); }
+    .status-msg.error { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); color: #ef4444; }
+    .status-msg .elapsed { font-size: .8rem; color: var(--muted); margin-top: .5rem; }
     footer { text-align: center; padding: 2rem 0; color: var(--muted); font-size: .8rem; border-top: 1px solid var(--border); }
     footer a { color: var(--primary); text-decoration: none; }
   </style>
@@ -56,7 +80,7 @@
       <span class="badge">⭐ <span>59.6k</span> GitHub Stars</span>
       <span class="badge">📄 arXiv: 2412.20138</span>
       <span class="badge">🔬 Forschungsprojekt</span>
-      <span class="badge">🇩🇪 v1.0.0 RunTippi</span>
+      <span class="badge" id="status-badge">⚙️ Checking config...</span>
     </div>
   </header>
 
@@ -72,110 +96,74 @@
           <label>Analysedatum (leer = heute)</label>
           <input type="date" id="date">
         </div>
-        <div class="form-group">
-          <label>Analysten-Teams</label>
-          <select id="analysts" multiple style="min-height:60px">
-            <option value="market" selected>Market Analyst</option>
-            <option value="social" selected>Social Analyst</option>
-            <option value="news" selected>News Analyst</option>
-            <option value="fundamentals" selected>Fundamentals Analyst</option>
-          </select>
+        <button id="analyze" onclick="runAnalysis()">🚀 Analysieren</button>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label>Analysten-Teams (alle auswählen für Vollanalyse)</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" value="market" checked> 📈 Market</label>
+          <label><input type="checkbox" value="social" checked> 💬 Social</label>
+          <label><input type="checkbox" value="news" checked> 📰 News</label>
+          <label><input type="checkbox" value="fundamentals" checked> 📋 Fundamentals</label>
         </div>
-        <button id="analyze" onclick="runAnalysis()">🚀 Analysezieren</button>
       </div>
       <div id="status"></div>
+      <div class="progress-bar" id="progress" style="display:none"><div class="progress-bar-fill"></div></div>
     </div>
   </section>
 
-  <section>
-    <h2>🧠 Architektur — 4 Agenten-Teams</h2>
-    <div class="grid">
-      <div class="card">
-        <h3>📈 Analyst Team</h3>
-        <p>Spezialisierte Analysten bewerten den Markt aus verschiedenen Perspektiven.</p>
-        <div class="agent-list">
-          <span class="agent">Fundamentals</span><span class="agent">Sentiment</span>
-          <span class="agent">News</span><span class="agent">Technical</span>
-        </div>
-      </div>
-      <div class="card">
-        <h3>🔬 Researcher Team</h3>
-        <p>Bullish und bearish Researchers debattieren strukturiert über die Erkenntnisse.</p>
-        <div class="agent-list">
-          <span class="agent">Bull Researcher</span><span class="agent">Bear Researcher</span>
-          <span class="agent">Research Manager</span>
-        </div>
-      </div>
-      <div class="card">
-        <h3>💼 Trader & Risk</h3>
-        <p>Der Trader Agent trifft Entscheidungen basierend auf den Berichten aller Teams.</p>
-        <div class="agent-list">
-          <span class="agent">Trader</span><span class="agent">Risk Manager</span>
-          <span class="agent">Portfolio Manager</span>
-        </div>
-      </div>
-      <div class="card">
-        <h3>🛡️ Risk Management</h3>
-        <p>Aggressive, neutrale und konservative Analysten bewerten Risiken und Justieren Strategien.</p>
-        <div class="agent-list">
-          <span class="agent">Aggressive</span><span class="agent">Neutral</span>
-          <span class="agent">Conservative</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <h2>⚙️ Konfiguration</h2>
-    <div class="card">
-      <p>TradingAgents wird über <strong>RunTippi Settings</strong> konfiguriert:</p>
-      <ul style="margin: .75rem 0 0 1.25rem; color: var(--muted); font-size: .9rem;">
-        <li><code>TRADINGAGENTS_LLM_PROVIDER</code> — LLM Provider (openai, anthropic, google, deepseek, openrouter)</li>
-        <li><code>TRADINGAGENTS_API_KEY</code> — API Key des gewählten Providers</li>
-        <li><code>TRADINGAGENTS_DEFAULT_MODEL</code> — Default Modell (z.B. gpt-5.4)</li>
-        <li><code>TRADINGAGENTS_INITIAL_TICKER</code> — Voreingestellter Ticker</li>
-      </ul>
-    </div>
-  </section>
-
-  <section>
-    <h2>🚀 CLI-Nutzung</h2>
-    <div class="card">
-      <p>Direkter Zugriff via SSH/Terminal auf dem RunTippi-Host:</p>
-      <pre>tradingagents          # Interaktiver Modus
-python -m cli.main     # Alternative</pre>
-      <p style="margin-top:.75rem">Die Analyse-Results werden gespeichert unter <code>~/.tradingagents/logs/</code></p>
-    </div>
-  </section>
-
-  <section>
-    <h2>📚 Referenz</h2>
-    <div class="grid">
-      <div class="card"><h3><a href="https://github.com/TauricResearch/TradingAgents" style="color:var(--primary);text-decoration:none">GitHub Repository</a></h3><p>Offizielles Repo mit Dokumentation, Issues und Contributing Guide.</p></div>
-      <div class="card"><h3><a href="https://arxiv.org/abs/2412.20138" style="color:var(--primary);text-decoration:none">arXiv Paper</a></h3><p>Wissenschaftliche Publikation zum Multi-Agent Trading Framework.</p></div>
-      <div class="card"><h3><a href="https://discord.com/invite/hk9PGKShPK" style="color:var(--primary);text-decoration:none">Discord Community</a></h3><p>Community-Diskussion, Support und Updates.</p></div>
-    </div>
+  <section id="results">
+    <h2>📋 Ergebnisse</h2>
+    <div id="signal-area" style="text-align:center; margin-bottom:1.5rem;"></div>
+    <div id="reports-container"></div>
   </section>
 
   <footer>
-    TradingAgents RunTippi App v1.0.0 · Basiert auf <a href="https://github.com/TauricResearch/TradingAgents">TauricResearch/TradingAgents</a> · Nur zu Forschungszwecken — keine Finanzberatung
+    TradingAgents RunTippi App v1.1.0 · Basiert auf <a href="https://github.com/TauricResearch/TradingAgents" target="_blank">TauricResearch/TradingAgents</a> · Nur zu Forschungszwecken — keine Finanzberatung
   </footer>
 </div>
 
 <script>
+const signalLabels = {
+  'Buy': 'Kaufen',
+  'Overweight': 'Übergewichten',
+  'Hold': 'Halten',
+  'Underweight': 'Untergewichten',
+  'Sell': 'Verkaufen'
+};
+
+const reportLabels = {
+  'market_report': '📈 Market Analyst',
+  'sentiment_report': '💬 Sentiment Analyst',
+  'news_report': '📰 News Analyst',
+  'fundamentals_report': '📋 Fundamentals Analyst',
+  'investment_debate_state': '🔬 Investment Debate',
+  'final_trade_decision': '💼 Portfolio Manager Entscheidung'
+};
+
 async function runAnalysis() {
   const btn = document.getElementById('analyze');
   const status = document.getElementById('status');
+  const progress = document.getElementById('progress');
+  const results = document.getElementById('results');
   const ticker = document.getElementById('ticker').value.trim();
   const date = document.getElementById('date').value;
-  const sel = document.getElementById('analysts');
-  const analysts = Array.from(sel.selectedOptions).map(o => o.value);
+
+  const analysts = [];
+  document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked').forEach(cb => analysts.push(cb.value));
 
   if (!ticker) { showStatus('Bitte Ticker eingeben.', 'error'); return; }
   if (analysts.length === 0) { showStatus('Bitte mindestens einen Analysten auswählen.', 'error'); return; }
 
   btn.disabled = true;
-  showStatus('<span class="spinner"></span>Analysiere ' + ticker + '… (kann einige Minuten dauern)', 'info');
+  results.style.display = 'none';
+  progress.style.display = 'block';
+  progress.querySelector('.progress-bar-fill').style.animation = 'none';
+  void progress.querySelector('.progress-bar-fill').offsetWidth;
+  progress.querySelector('.progress-bar-fill').style.animation = 'progress 60s linear';
+  showStatus('⏳ TradingAgents initialisieren… (kann mehrere Minuten dauern)', 'info');
+
+  const startTime = Date.now();
 
   try {
     const res = await fetch('/api/analyze', {
@@ -184,23 +172,89 @@ async function runAnalysis() {
       body: JSON.stringify({ ticker, date, analysts }),
     });
     const data = await res.json();
+    progress.style.display = 'none';
 
-    if (data.status === 'success') {
-      showStatus('✅ Analyse für ' + data.ticker + ' abgeschlossen!\n\n' + (data.output || data.decision), 'success');
+    if (data.success) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      showStatus(`✅ Analyse für <strong>${data.ticker}</strong> abgeschlossen (${elapsed}s)`, 'success');
+      displayResults(data);
     } else {
-      showStatus('❌ Fehler: ' + (data.error || 'Unknown error'), 'error');
+      showStatus(`❌ Fehler: ${data.error || 'Unknown error'}`, 'error');
     }
   } catch (e) {
-    showStatus('❌ Netzwerkfehler: ' + e.message, 'error');
+    progress.style.display = 'none';
+    showStatus(`❌ Netzwerkfehler: ${e.message}`, 'error');
   } finally {
     btn.disabled = false;
   }
 }
 
+function displayResults(data) {
+  const results = document.getElementById('results');
+  const signalArea = document.getElementById('signal-area');
+  const container = document.getElementById('reports-container');
+  container.innerHTML = '';
+
+  // Signal badge
+  if (data.signal) {
+    const cssClass = `signal-${data.signal.toLowerCase()}`;
+    const label = signalLabels[data.signal] || data.signal;
+    signalArea.innerHTML = `<span class="signal-badge ${cssClass}">${label}</span>`;
+  } else {
+    signalArea.innerHTML = '';
+  }
+
+  // PM Decision (always first)
+  if (data.decision) {
+    container.innerHTML += createCollapsible('final_trade_decision', data.decision, true);
+  }
+
+  // Analyst reports
+  if (data.reports) {
+    for (const [key, report] of Object.entries(data.reports)) {
+      if (report && report.trim()) {
+        container.innerHTML += createCollapsible(key, report);
+      }
+    }
+  }
+
+  results.style.display = 'block';
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function createCollapsible(labelKey, content, startOpen = false) {
+  const label = reportLabels[labelKey] || labelKey;
+  const id = 'report-' + labelKey.replace(/[^a-zA-Z]/g, '');
+  return `
+    <div class="result-section">
+      <div class="result-header ${startOpen ? 'open' : ''}" onclick="toggleReport('${id}')">
+        <h3>${label}</h3>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="result-body ${startOpen ? 'open' : ''}" id="${id}">
+        <pre>${escapeHtml(content)}</pre>
+      </div>
+    </div>
+  `;
+}
+
+function toggleReport(id) {
+  const body = document.getElementById(id);
+  const header = body.previousElementSibling;
+  body.classList.toggle('open');
+  header.classList.toggle('open');
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function showStatus(msg, type) {
   const el = document.getElementById('status');
   el.style.display = 'block';
-  el.className = type;
+  el.className = 'status-msg ' + type;
   el.innerHTML = msg;
 }
 
@@ -209,8 +263,18 @@ function showStatus(msg, type) {
   try {
     const res = await fetch('/api/status');
     const data = await res.json();
-    document.getElementById('ticker').value = data.initial_ticker || 'AAPL';
-  } catch(e) {}
+    document.getElementById('ticker').value = data.ticker || 'AAPL';
+    const badge = document.getElementById('status-badge');
+    if (data.configured) {
+      badge.innerHTML = `✅ ${data.provider} / ${data.model}`;
+      badge.style.borderColor = 'var(--accent)';
+    } else {
+      badge.innerHTML = '⚠️ API Key nicht konfiguriert';
+      badge.style.borderColor = 'var(--danger)';
+    }
+  } catch(e) {
+    document.getElementById('status-badge').innerHTML = '❌ Status unbekannt';
+  }
 })();
 </script>
 </body>
