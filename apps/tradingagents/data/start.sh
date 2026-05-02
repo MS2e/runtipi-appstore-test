@@ -100,44 +100,82 @@ async def analyze(req: AnalyzeRequest):
 
     try:
         from tradingagents.graph.trading_graph import TradingAgentsGraph
-        from tradingagents.default_config import DEFAULT_CONFIG
+        from tradingagents.config import TradingAgentsConfig, set_config
     except ImportError as e:
         return AnalyzeResponse(
             success=False, ticker=req.ticker,
-            error=f"TradingAgents import failed: {e}. Container may be in crash loop — check logs.",
+            error=f"TradingAgents import failed: {e}. Check TradingAgents v0.3.1 API compatibility.",
         )
 
-    config = DEFAULT_CONFIG.copy()
     provider = os.getenv("TRADINGAGENTS_LLM_PROVIDER", "openai")
     model = os.getenv("TRADINGAGENTS_DEFAULT_MODEL", "gpt-5.4")
 
-    config["llm_provider"] = provider
-    config["deep_think_llm"] = model
-    config["quick_think_llm"] = model
-    config["output_language"] = os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE", "English")
+    # Map our provider names to v0.3.1 LLMProvider values
+    provider_map = {
+        "openai": "openai", "anthropic": "anthropic",
+        "google": "google_genai", "google_genai": "google_genai",
+        "deepseek": "litellm", "xai": "xai",
+        "qwen": "litellm", "glm": "litellm",
+        "openrouter": "openrouter", "ollama": "ollama",
+        "azure": "openai",  # Azure uses OpenAI client
+    }
+    v3_provider = provider_map.get(provider, provider)
 
     api_key_map = {
         "openai": "OPENAI_API_KEY", "anthropic": "ANTHROPIC_API_KEY",
-        "google": "GOOGLE_API_KEY", "deepseek": "DEEPSEEK_API_KEY",
-        "xai": "XAI_API_KEY", "qwen": "DASHSCOPE_API_KEY",
-        "glm": "ZHIPU_API_KEY", "openrouter": "OPENROUTER_API_KEY",
-        "ollama": None, "azure": "AZURE_OPENAI_API_KEY",
+        "google_genai": "GOOGLE_API_KEY", "xai": "XAI_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
+        "litellm": "OPENAI_API_KEY",  # litellm needs a base key
+        "ollama": None, "huggingface": "HUGGINGFACE_API_KEY",
     }
     api_key = os.getenv("TRADINGAGENTS_API_KEY", "")
-    key_env = api_key_map.get(provider)
+    key_env = api_key_map.get(v3_provider) or api_key_map.get(provider)
 
     if key_env and api_key and api_key != "***":
         os.environ[key_env] = api_key
-    elif provider == "ollama":
+        # For litellm-based providers, also set LITELLM key
+        if v3_provider == "litellm":
+            os.environ["LITELLM_API_KEY"] = api_key
+            # Set provider-specific base_url for litellm
+            if provider == "deepseek":
+                os.environ["LITELLM_BASE_URL"] = "https://api.deepseek.com"
+            elif provider == "qwen":
+                os.environ["LITELLM_BASE_URL"] = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+            elif provider == "glm":
+                os.environ["LITELLM_BASE_URL"] = "https://api.z.ai/api/paas/v4/"
+    elif v3_provider == "ollama":
         pass
     else:
         return AnalyzeResponse(
             success=False, ticker=req.ticker,
-            error="No API key configured. Please set TRADINGAGENTS_API_KEY in RunTipi app settings.",
+            error="No API key configured. Set TRADINGAGENTS_API_KEY in RunTipi app settings.",
         )
 
+    # Build config using v0.3.1 Pydantic model
+    lang = os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE", "en")
+    if lang in ("German", "Deutsch", "German"):
+        lang = "de"
+    elif lang not in ("en", "de", "zh", "ja", "ko", "fr"):
+        lang = "en"
+
+    config = TradingAgentsConfig(
+        llm_provider=v3_provider,
+        deep_think_llm=model,
+        quick_think_llm=model,
+        max_debate_rounds=1,
+        max_risk_discuss_rounds=1,
+        max_recur_limit=100,
+        response_language=lang,
+        reasoning_effort="medium",
+        results_dir=Path("/root/.tradingagents/logs"),
+    )
+
     try:
-        ta = TradingAgentsGraph(selected_analysts=req.analysts, debug=False, config=config)
+        ta = TradingAgentsGraph(
+            selected_analysts=req.analysts,
+            debug=False,
+            config=config,
+        )
     except Exception as e:
         return AnalyzeResponse(success=False, ticker=req.ticker, error=f"Init failed: {e}")
 
