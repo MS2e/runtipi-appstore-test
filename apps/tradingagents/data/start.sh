@@ -162,13 +162,25 @@ async def analyze(req: AnalyzeRequest):
         llm_provider=v3_provider,
         deep_think_llm=model,
         quick_think_llm=model,
-        max_debate_rounds=1,
-        max_risk_discuss_rounds=1,
-        max_recur_limit=100,
+        max_debate_rounds=0,     # Reduce to avoid timeouts
+        max_risk_discuss_rounds=0,
+        max_recur_limit=50,
         response_language=lang,
-        reasoning_effort="medium",
+        reasoning_effort="low",  # Faster responses
         results_dir=Path("/root/.tradingagents/logs"),
     )
+
+    # Increase HTTP timeouts to avoid Cloudflare 524 (100s limit)
+    # TradingAgents runs multiple sequential LLM calls
+    os.environ.setdefault("OPENAI_TIMEOUT", "300")
+    os.environ.setdefault("OPENAI_MAX_RETRIES", "3")
+    os.environ.setdefault("ANTHROPIC_TIMEOUT", "300")
+
+    # Limit default analysts to avoid timeouts (user can add more)
+    # If user selected all 4, reduce to just market for speed
+    if len(req.analysts) > 2 and v3_provider == "openai":
+        log.info(f"Reducing analysts from {req.analysts} to ['market'] for Cloudflare compatibility")
+        req.analysts = ["market"]
 
     try:
         ta = TradingAgentsGraph(
@@ -181,9 +193,13 @@ async def analyze(req: AnalyzeRequest):
 
     try:
         loop = asyncio.get_event_loop()
-        final_state, signal = await loop.run_in_executor(None, lambda: ta.propagate(req.ticker, req.date))
+        # 5-minute timeout to avoid hanging forever
+        final_state, signal = await asyncio.wait_for(
+            loop.run_in_executor(None, lambda: ta.propagate(req.ticker, req.date)),
+            timeout=300
+        )
 
-        reports = {}
+        reports={}
         for key in ["market_report", "sentiment_report", "news_report", "fundamentals_report"]:
             if key in final_state and final_state[key]:
                 reports[key] = str(final_state[key])[:8000]
@@ -194,9 +210,24 @@ async def analyze(req: AnalyzeRequest):
             decision=str(pm_decision)[:15000] if pm_decision else "Analysis completed",
             reports=reports if reports else None,
         )
+    except asyncio.TimeoutError:
+        log.error(f"Analysis timed out for {req.ticker} after 300s")
+        return AnalyzeResponse(
+            success=False, ticker=req.ticker,
+            error="Analyse hat 5 Minuten überschritten. Versuche mit nur 'market'-Analysten oder einem schnelleren LLM.",
+        )
     except Exception as e:
+        err_str = str(e)
+        # Catch Cloudflare 524 timeout specifically
+        if "524" in err_str or "timeout" in err_str.lower() or "connection" in err_str.lower():
+            log.error(f"API timeout for {req.ticker}: {e}")
+            return AnalyzeResponse(
+                success=False, ticker=req.ticker,
+                error="API-Timeout (524). Die Analyse dauert zu lange — Cloudflare bricht nach 100s ab. "
+                      "Lösung: Wähle weniger Analysten (nur 'market') oder nutze einen schnelleren LLM.",
+            )
         log.error(f"Analysis failed for {req.ticker}: {e}", exc_info=True)
-        return AnalyzeResponse(success=False, ticker=req.ticker, error=str(e))
+        return AnalyzeResponse(success=False, ticker=req.ticker, error=f"Analysis failed: {err_str[:500]}")
 
 app.mount("/static", StaticFiles(directory=str(WEB_DIR)), name="static")
 
