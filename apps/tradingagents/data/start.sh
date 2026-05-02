@@ -167,6 +167,7 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
 SERVEREOF
 
+mkdir -p /tmp/web
 cat > /tmp/web/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="de">
