@@ -8,11 +8,11 @@
       "internalPort": 8080,
       "command": "/app/start.sh",
       "environment": [
-        {"name": "TRADINGAGENTS_LLM_PROVIDER", "value": "${TRADINGAGENTS_LLM_PROVIDER}"},
-        {"name": "TRADINGAGENTS_API_KEY", "value": "${TRADINGAGENTS_API_KEY}"},
-        {"name": "TRADINGAGENTS_DEFAULT_MODEL", "value": "${TRADINGAGENTS_DEFAULT_MODEL}"},
-        {"name": "TRADINGAGENTS_OUTPUT_LANGUAGE", "value": "${TRADINGAGENTS_OUTPUT_LANGUAGE}"},
-        {"name": "TRADINGAGENTS_INITIAL_TICKER", "value": "${TRADINGAGENTS_INITIAL_TICKER}"}
+        {"key": "TRADINGAGENTS_LLM_PROVIDER", "value": "${TRADINGAGENTS_LLM_PROVIDER}"},
+        {"key": "TRADINGAGENTS_API_KEY", "value": "${TRADINGAGENTS_API_KEY}"},
+        {"key": "TRADINGAGENTS_DEFAULT_MODEL", "value": "${TRADINGAGENTS_DEFAULT_MODEL}"},
+        {"key": "TRADINGAGENTS_OUTPUT_LANGUAGE", "value": "${TRADINGAGENTS_OUTPUT_LANGUAGE}"},
+        {"key": "TRADINGAGENTS_INITIAL_TICKER", "value": "${TRADINGAGENTS_INITIAL_TICKER}"}
       ],
       "volumes": [
         {
