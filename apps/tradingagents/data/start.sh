@@ -158,25 +158,26 @@ async def analyze(req: AnalyzeRequest):
     elif lang not in ("en", "de", "zh", "ja", "ko", "fr"):
         lang = "en"
 
-    # Auto-select a fast reasoning model for quick_think (orchestration steps)
+    # Auto-select a fast model for quick_think (orchestration steps)
     # while keeping the configured model for deep_think (analysis quality).
-    # Maps to smaller/faster variants of the same model family.
-    # NOTE: reasoning_effort is set to None explicitly below — TradingAgents
-    # would send it to ALL LLM calls and non-reasoning models reject it.
+    #
+    # IMPORTANT: quick_think MUST NOT use mini variants of reasoning models
+    # (gpt-5.4-mini, o3-mini) because they reject reasoning_effort on /v1/chat.
+    # Map to fully-compatible non-reasoning fast models instead.
     quick_model_map = {
-        # OpenAI reasoning models → fast mini variants
-        "gpt-5.4": "gpt-5.4-mini",
-        "gpt-5.4-mini": "gpt-5.4-mini",
-        "gpt-5": "gpt-5-mini",
-        "gpt-5-mini": "gpt-5-mini",
-        "gpt-4.5": "gpt-4.5-mini",
+        # OpenAI reasoning models → fast non-reasoning (reasoning_effort compatible)
+        "gpt-5.4": "gpt-4.1",
+        "gpt-5.4-mini": "gpt-4.1-mini",
+        "gpt-5": "gpt-4.1",
+        "gpt-5-mini": "gpt-4.1-mini",
+        "gpt-4.5": "gpt-4.1",
         "gpt-4.1": "gpt-4.1-mini",
         "gpt-4.1-mini": "gpt-4.1-mini",
-        "o3": "o3-mini",
-        "o3-mini": "o3-mini",
-        "o4": "o4-mini",
-        "o4-mini": "o4-mini",
-        # Anthropic → use cheaper model of same family
+        "o3": "gpt-4.1",
+        "o3-mini": "gpt-4.1-mini",
+        "o4": "gpt-4.1",
+        "o4-mini": "gpt-4.1-mini",
+        # Anthropic → cheaper model of same family (effort param ok for Sonnet)
         "claude-sonnet-4": "claude-sonnet-4-20250514",
         "claude-sonnet-4-20250514": "claude-sonnet-4-20250514",
         "claude-opus-4": "claude-sonnet-4-20250514",
@@ -193,11 +194,7 @@ async def analyze(req: AnalyzeRequest):
         max_recur_limit=50,
         response_language=lang,
         results_dir=Path("/root/.tradingagents/logs"),
-        # Set to None explicitly to prevent TradingAgents from sending
-        # unsupported reasoning_effort to non-OpenAI providers (Anthropic, Google, etc.)
-        reasoning_effort=None,
-        anthropic_effort=None,
-        google_thinking_level=None,
+        reasoning_effort="low",  # Minimal reasoning — compatible with all models
     )
 
     # Extend HTTP timeouts for multi-step analysis
