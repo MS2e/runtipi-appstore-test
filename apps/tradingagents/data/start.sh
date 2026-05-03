@@ -651,6 +651,7 @@ function showStatus(m,ty){const e=document.getElementById('status');e.className=
 
 (async()=>{try{const r=await fetch('/api/status');const d=await r.json();
 document.getElementById('ticker').value=d.ticker||'AAPL';
+document.getElementById('date').value=new Date().toISOString().split('T')[0];
 const b=document.getElementById('status-badge');b.innerHTML=d.configured?'✅ '+d.provider+'/'+d.model:'⚠️ '+t.no_api}catch(e){document.getElementById('status-badge').innerHTML='❌'}})();
 </script>
 </body>
