@@ -194,8 +194,22 @@ async def analyze(req: AnalyzeRequest):
         max_recur_limit=50,
         response_language=lang,
         results_dir=Path("/root/.tradingagents/logs"),
-        reasoning_effort="low",  # Minimal reasoning — compatible with all models
+        reasoning_effort="low",
     )
+
+    # Monkey-patch TradingAgents' build_chat_model to only send reasoning_effort
+    # for models that actually support it. gpt-4.1, gpt-5 (non-reasoning), gpt-3.5,
+    # and gpt-*-mini variants all reject reasoning_effort on /v1/chat/completions.
+    import tradingagents.llm as _ta_llm
+    _orig_build = _ta_llm.build_chat_model
+    def _safe_build(provider, m, *, reasoning_effort=None, callbacks=None):
+        ml = m.lower()
+        is_reasoning = any(k in ml for k in ("o3", "o4", "gpt-5.4", "sonnet-4", "opus-4", "gemini"))
+        if not is_reasoning:
+            reasoning_effort = None  # skip reasoning params for non-reasoning models
+        return _orig_build(provider=provider, model=m,
+                          reasoning_effort=reasoning_effort, callbacks=callbacks)
+    _ta_llm.build_chat_model = _safe_build
 
     # Extend HTTP timeouts for multi-step analysis
     # Cloudflare free tier: 100s per request, but our container sits behind
