@@ -372,20 +372,24 @@ button#analyze:disabled{opacity:.4;cursor:not-allowed}
 .result-body{padding:0 1.5rem;max-height:0;overflow:hidden;transition:max-height .3s}
 .result-body.open{max-height:600px;overflow-y:auto;padding:1rem 1.5rem}
 .result-body pre{white-space:pre-wrap;word-break:break-word;font-size:.85rem;color:var(--muted);line-height:1.7}
-.decision-flow{display:flex;flex-direction:column;gap:0;margin:1.5rem 0;position:relative}
-.decision-step{display:flex;gap:1rem;position:relative;padding-bottom:1.5rem}
-.decision-step:last-child{padding-bottom:0}
-.step-arrow{text-align:center;color:var(--muted);font-size:1.2rem;padding:.5rem 0;flex-shrink:0;width:24px;position:relative;left:-12px}
-.step-content{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem}
-.step-content+.step-arrow .arrow-down{color:var(--primary)}
-.step-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--primary);margin-bottom:.5rem;font-weight:600}
-.step-body{font-size:.88rem;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word}
-.debate-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.decision-flow{display:flex;flex-direction:column;gap:0.75rem;margin:1.5rem 0}
+.decision-step{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.decision-step:hover{border-color:var(--primary)}
+.decision-step.open{border-color:var(--primary)}
+.step-header{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;user-select:none}
+.step-arrow-icon{flex-shrink:0;width:24px;text-align:center;color:var(--muted);transition:transform .2s;font-size:.9rem}
+.decision-step.open .step-arrow-icon{transform:rotate(90deg)}
+.step-title{flex:1;font-size:.85rem;font-weight:600;color:var(--text)}
+.step-preview{flex:2;font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+.step-body{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;padding:0 1.25rem}
+.decision-step.open .step-body{max-height:2000px;overflow-y:auto;padding:0 1.25rem 1rem}
+.step-body-inner{font-size:.88rem;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.debate-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
 .debate-side{background:var(--bg);border-radius:8px;padding:.75rem}
-.debate-side h4{font-size:.78rem;margin-bottom:.4rem}
+.debate-side h4{font-size:.78rem;margin-bottom:.3rem}
 .bull-side h4{color:#34d399}.bear-side h4{color:#f87171}
 .aggressive-side h4{color:#fbbf24}.conservative-side h4{color:#60a5fa}.neutral-side h4{color:#94a3b8}
-.judge-box{margin-top:.75rem;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:.75rem}
+.judge-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:.75rem}
 .judge-box h4{color:var(--primary);font-size:.78rem;margin-bottom:.3rem}
 #results{display:none}
 .progress-bar{width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:1rem 0}
@@ -421,7 +425,6 @@ button#analyze:disabled{opacity:.4;cursor:not-allowed}
 <h2>Ergebnisse</h2>
 <div id="signal-area" style="text-align:center;margin-bottom:1.5rem"></div>
 <div id="decision-flow" class="decision-flow" style="display:none"></div>
-<div id="reports-container"></div>
 </section>
 <footer style="text-align:center;padding:2rem 0;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border)">
 TradingAgents Research Tool — keine Finanzberatung
@@ -448,35 +451,53 @@ else showStatus('Fehler: '+d.error,'error')}
 catch(e){pr.style.display='none';showStatus('Netzwerk: '+e.message,'error')}
 btn.disabled=false}
 function displayResults(d){
-const res=document.getElementById('results'),sa=document.getElementById('signal-area'),df=document.getElementById('decision-flow'),co=document.getElementById('reports-container');co.innerHTML='';
+const res=document.getElementById('results'),sa=document.getElementById('signal-area'),df=document.getElementById('decision-flow');
 if(d.signal){const cl='signal-'+d.signal.toLowerCase(),lb=sigLabels[d.signal]||d.signal;sa.innerHTML='<span class="'+cl+'">'+lb+'</span>'}else sa.innerHTML='';
-// Build decision flow
+// Build collapsible decision flow
 df.innerHTML='';
-let steps=[];
-let reportSummary=[];
-if(d.reports){Object.entries(d.reports).forEach(([k,v])=>{if(v){reportSummary.push(repLabels[k]||k)}})}
-if(reportSummary.length>0)steps.push({label:'Analysten-Berichte',body:'Eingänge: '+reportSummary.join(' · '),isSummary:true});
+let steps=[];let stepIdx=0;
+// Analyst reports as individual collapsible steps
+if(d.reports){Object.entries(d.reports).forEach(([k,v])=>{
+if(v){
+let preview=v.substring(0,80).replace(/\n/g,' ');
+steps.push({icon:'📊',title:repLabels[k]||k,preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(v)+'</div>',id:'step'+stepIdx++});
+}})}
+// Investment debate
 if(d.debate&&d.debate.judge_decision){
-let debHtml='<div class="debate-grid"><div class="debate-side bull-side"><h4>Bull (Kaufen)</h4><div class="step-body">'+esc(d.debate.bull_history||'—')+'</div></div><div class="debate-side bear-side"><h4>Bear (Verkaufen)</h4><div class="step-body">'+esc(d.debate.bear_history||'—')+'</div></div></div>';
-debHtml+='<div class="judge-box"><h4>Research Manager</h4><div class="step-body">'+esc(d.debate.judge_decision)+'</div></div>';
-steps.push({label:'Investitions-Debatte',bodyHtml:debHtml});
+let preview=d.debate.judge_decision.substring(0,60).replace(/\n/g,' ');
+let debHtml='<div class="debate-grid"><div class="debate-side bull-side"><h4>Bull</h4><div class="step-body-inner">'+esc(d.debate.bull_history||'—')+'</div></div><div class="debate-side bear-side"><h4>Bear</h4><div class="step-body-inner">'+esc(d.debate.bear_history||'—')+'</div></div></div>';
+debHtml+='<div class="judge-box"><h4>Research Manager</h4><div class="step-body-inner">'+esc(d.debate.judge_decision)+'</div></div>';
+steps.push({icon:'⚔️',title:'Investitions-Debatte',preview:preview,bodyHtml:debHtml,id:'step'+stepIdx++});
 }
-if(d.investment_plan){steps.push({label:'Investment Plan',body:d.investment_plan})}
-if(d.trader_plan){steps.push({label:'Trader-Plan',body:d.trader_plan})}
+// Investment Plan
+if(d.investment_plan){
+let preview=d.investment_plan.substring(0,60).replace(/\n/g,' ');
+steps.push({icon:'📋',title:'Investment Plan',preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(d.investment_plan)+'</div>',id:'step'+stepIdx++});
+}
+// Trader Plan
+if(d.trader_plan){
+let preview=d.trader_plan.substring(0,60).replace(/\n/g,' ');
+steps.push({icon:'💼',title:'Trader-Plan',preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(d.trader_plan)+'</div>',id:'step'+stepIdx++});
+}
+// Risk Debate
 if(d.risk_debate&&d.risk_debate.judge_decision){
-let riskHtml='<div class="debate-grid"><div class="debate-side aggressive-side"><h4>Aggressiv</h4><div class="step-body">'+esc(d.risk_debate.aggressive_history||'—')+'</div></div><div class="debate-side conservative-side"><h4>Konservativ</h4><div class="step-body">'+esc(d.risk_debate.conservative_history||'—')+'</div></div><div class="debate-side neutral-side"><h4>Neutral</h4><div class="step-body">'+esc(d.risk_debate.neutral_history||'—')+'</div></div></div>';
-riskHtml+='<div class="judge-box"><h4>Risk Manager</h4><div class="step-body">'+esc(d.risk_debate.judge_decision)+'</div></div>';
-steps.push({label:'Risiko-Debatte',bodyHtml:riskHtml});
+let preview=d.risk_debate.judge_decision.substring(0,60).replace(/\n/g,' ');
+let riskHtml='<div class="debate-grid"><div class="debate-side aggressive-side"><h4>Aggressiv</h4><div class="step-body-inner">'+esc(d.risk_debate.aggressive_history||'—')+'</div></div><div class="debate-side conservative-side"><h4>Konservativ</h4><div class="step-body-inner">'+esc(d.risk_debate.conservative_history||'—')+'</div></div><div class="debate-side neutral-side"><h4>Neutral</h4><div class="step-body-inner">'+esc(d.risk_debate.neutral_history||'—')+'</div></div></div>';
+riskHtml+='<div class="judge-box"><h4>Risk Manager</h4><div class="step-body-inner">'+esc(d.risk_debate.judge_decision)+'</div></div>';
+steps.push({icon:'🛡️',title:'Risiko-Debatte',preview:preview,bodyHtml:riskHtml,id:'step'+stepIdx++});
 }
-if(d.decision&&d.decision!=='Analysis completed'){steps.push({label:'Finale Entscheidung',body:d.decision})}
-if(steps.length>1){
-steps.forEach((s,i)=>{
-let body=s.isSummary?'<div style="color:var(--muted);font-style:italic">'+s.body+'</div>':(s.bodyHtml||'<div class="step-body">'+esc(s.body)+'</div>');
-df.innerHTML+='<div class="decision-step"><div class="step-arrow">'+(i===0?'🔍':'⬇️')+'</div><div class="step-content"><div class="step-label">'+s.label+'</div>'+body+'</div></div>';
+// Final decision — always open
+if(d.decision&&d.decision!=='Analysis completed'){
+let preview=d.decision.substring(0,60).replace(/\n/g,' ');
+steps.push({icon:'✅',title:'Finale Entscheidung',preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(d.decision)+'</div>',id:'step'+stepIdx++,alwaysOpen:true});
+}
+if(steps.length>0){
+steps.forEach((s)=>{
+let openClass=s.alwaysOpen?' open':'';
+df.innerHTML+='<div class="decision-step'+openClass+'" onclick="this.classList.toggle(\'open\')"><div class="step-header"><span class="step-arrow-icon">▶</span><span class="step-title">'+s.icon+' '+s.title+'</span><span class="step-preview">'+esc(s.preview)+'</span></div><div class="step-body" id="'+s.id+'">'+s.bodyHtml+'</div></div>';
 });
 df.style.display='flex';
 }else{df.style.display='none'}
-if(d.reports)Object.entries(d.reports).forEach(([k,v])=>{if(v)co.innerHTML+=mk(k,v)});
 res.style.display='block';res.scrollIntoView({behavior:'smooth'})}
 function mk(k,c,s=false){const id='r'+k.replace(/[^a-zA-Z]/g,'');return'<div class="result-section"><div class="result-header'+(s?' open':'')+'" onclick="tog(\''+id+'\')"><h3>'+repLabels[k]||k+'</h3><span>▼</span></div><div class="result-body'+(s?' open':'')+'" id="'+id+'"><pre>'+esc(c)+'</pre></div></div>'}
 function tog(i){const b=document.getElementById(i);b.classList.toggle('open');b.previousElementSibling.classList.toggle('open')}
