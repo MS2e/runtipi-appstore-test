@@ -243,12 +243,14 @@ async def analyze(req: AnalyzeRequest):
             timeout=900
         )
 
-        reports={}
+        # final_state is a Pydantic AgentState, not a dict — use attribute access
+        reports = {}
         for key in ["market_report", "sentiment_report", "news_report", "fundamentals_report"]:
-            if key in final_state and final_state[key]:
-                reports[key] = str(final_state[key])[:8000]
+            val = getattr(final_state, key, "")
+            if val:
+                reports[key] = str(val)[:8000]
 
-        pm_decision = final_state.get("final_trade_decision", "")
+        pm_decision = getattr(final_state, "final_trade_decision", "") or ""
         return AnalyzeResponse(
             success=True, ticker=req.ticker, signal=signal,
             decision=str(pm_decision)[:15000] if pm_decision else "Analysis completed",
