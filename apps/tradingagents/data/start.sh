@@ -61,6 +61,10 @@ class AnalyzeResponse(BaseModel):
     signal: Optional[str] = None
     decision: Optional[str] = None
     reports: Optional[dict] = None
+    debate: Optional[dict] = None
+    risk_debate: Optional[dict] = None
+    investment_plan: Optional[str] = None
+    trader_plan: Optional[str] = None
     error: Optional[str] = None
 
 class StatusResponse(BaseModel):
@@ -243,18 +247,48 @@ async def analyze(req: AnalyzeRequest):
             timeout=900
         )
 
-        # final_state is a Pydantic AgentState, not a dict — use attribute access
+        # final_state is a Pydantic AgentState — extract full decision chain
         reports = {}
         for key in ["market_report", "sentiment_report", "news_report", "fundamentals_report"]:
             val = getattr(final_state, key, "")
             if val:
                 reports[key] = str(val)[:8000]
 
+        # Investment debate (bull vs bear → research manager)
+        debate = getattr(final_state, "investment_debate_state", None)
+        debate_data = None
+        if debate:
+            debate_data = {
+                "bull_history": str(getattr(debate, "bull_history", ""))[:6000],
+                "bear_history": str(getattr(debate, "bear_history", ""))[:6000],
+                "judge_decision": str(getattr(debate, "judge_decision", ""))[:4000],
+                "rounds": getattr(debate, "count", 0),
+            }
+
+        # Risk debate (aggressive vs conservative vs neutral → risk manager)
+        risk_debate = getattr(final_state, "risk_debate_state", None)
+        risk_data = None
+        if risk_debate:
+            risk_data = {
+                "aggressive_history": str(getattr(risk_debate, "aggressive_history", ""))[:6000],
+                "conservative_history": str(getattr(risk_debate, "conservative_history", ""))[:6000],
+                "neutral_history": str(getattr(risk_debate, "neutral_history", ""))[:6000],
+                "judge_decision": str(getattr(risk_debate, "judge_decision", ""))[:4000],
+                "rounds": getattr(risk_debate, "count", 0),
+            }
+
         pm_decision = getattr(final_state, "final_trade_decision", "") or ""
+        investment_plan = str(getattr(final_state, "investment_plan", ""))[:6000] or ""
+        trader_plan = str(getattr(final_state, "trader_investment_plan", ""))[:6000] or ""
+
         return AnalyzeResponse(
             success=True, ticker=req.ticker, signal=signal,
             decision=str(pm_decision)[:15000] if pm_decision else "Analysis completed",
             reports=reports if reports else None,
+            debate=debate_data,
+            risk_debate=risk_data,
+            investment_plan=investment_plan,
+            trader_plan=trader_plan,
         )
     except asyncio.TimeoutError:
         log.error(f"Analysis timed out for {req.ticker} after 900s")
@@ -338,6 +372,21 @@ button#analyze:disabled{opacity:.4;cursor:not-allowed}
 .result-body{padding:0 1.5rem;max-height:0;overflow:hidden;transition:max-height .3s}
 .result-body.open{max-height:600px;overflow-y:auto;padding:1rem 1.5rem}
 .result-body pre{white-space:pre-wrap;word-break:break-word;font-size:.85rem;color:var(--muted);line-height:1.7}
+.decision-flow{display:flex;flex-direction:column;gap:0;margin:1.5rem 0;position:relative}
+.decision-step{display:flex;gap:1rem;position:relative;padding-bottom:1.5rem}
+.decision-step:last-child{padding-bottom:0}
+.step-arrow{text-align:center;color:var(--muted);font-size:1.2rem;padding:.5rem 0;flex-shrink:0;width:24px;position:relative;left:-12px}
+.step-content{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem}
+.step-content+.step-arrow .arrow-down{color:var(--primary)}
+.step-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--primary);margin-bottom:.5rem;font-weight:600}
+.step-body{font-size:.88rem;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.debate-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.debate-side{background:var(--bg);border-radius:8px;padding:.75rem}
+.debate-side h4{font-size:.78rem;margin-bottom:.4rem}
+.bull-side h4{color:#34d399}.bear-side h4{color:#f87171}
+.aggressive-side h4{color:#fbbf24}.conservative-side h4{color:#60a5fa}.neutral-side h4{color:#94a3b8}
+.judge-box{margin-top:.75rem;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:.75rem}
+.judge-box h4{color:var(--primary);font-size:.78rem;margin-bottom:.3rem}
 #results{display:none}
 .progress-bar{width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:1rem 0}
 .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:2px;animation:progress 60s linear;width:0%}
@@ -371,6 +420,7 @@ button#analyze:disabled{opacity:.4;cursor:not-allowed}
 <section id="results">
 <h2>Ergebnisse</h2>
 <div id="signal-area" style="text-align:center;margin-bottom:1.5rem"></div>
+<div id="decision-flow" class="decision-flow" style="display:none"></div>
 <div id="reports-container"></div>
 </section>
 <footer style="text-align:center;padding:2rem 0;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border)">
@@ -398,9 +448,34 @@ else showStatus('Fehler: '+d.error,'error')}
 catch(e){pr.style.display='none';showStatus('Netzwerk: '+e.message,'error')}
 btn.disabled=false}
 function displayResults(d){
-const res=document.getElementById('results'),sa=document.getElementById('signal-area'),co=document.getElementById('reports-container');co.innerHTML='';
-if(d.signal){const cl='signal-'+d.signal.toLowerCase(),lb=sigLabels[d.signal]||d.signal;sa.innerHTML='<span class="signal-badge '+cl+'">'+lb+'</span>'}else sa.innerHTML='';
-if(d.decision)co.innerHTML+=mk('final_trade_decision',d.decision,true);
+const res=document.getElementById('results'),sa=document.getElementById('signal-area'),df=document.getElementById('decision-flow'),co=document.getElementById('reports-container');co.innerHTML='';
+if(d.signal){const cl='signal-'+d.signal.toLowerCase(),lb=sigLabels[d.signal]||d.signal;sa.innerHTML='<span class="'+cl+'">'+lb+'</span>'}else sa.innerHTML='';
+// Build decision flow
+df.innerHTML='';
+let steps=[];
+let reportSummary=[];
+if(d.reports){Object.entries(d.reports).forEach(([k,v])=>{if(v){reportSummary.push(repLabels[k]||k)}})}
+if(reportSummary.length>0)steps.push({label:'Analysten-Berichte',body:'Eingänge: '+reportSummary.join(' · '),isSummary:true});
+if(d.debate&&d.debate.judge_decision){
+let debHtml='<div class="debate-grid"><div class="debate-side bull-side"><h4>Bull (Kaufen)</h4><div class="step-body">'+esc(d.debate.bull_history||'—')+'</div></div><div class="debate-side bear-side"><h4>Bear (Verkaufen)</h4><div class="step-body">'+esc(d.debate.bear_history||'—')+'</div></div></div>';
+debHtml+='<div class="judge-box"><h4>Research Manager</h4><div class="step-body">'+esc(d.debate.judge_decision)+'</div></div>';
+steps.push({label:'Investitions-Debatte',bodyHtml:debHtml});
+}
+if(d.investment_plan){steps.push({label:'Investment Plan',body:d.investment_plan})}
+if(d.trader_plan){steps.push({label:'Trader-Plan',body:d.trader_plan})}
+if(d.risk_debate&&d.risk_debate.judge_decision){
+let riskHtml='<div class="debate-grid"><div class="debate-side aggressive-side"><h4>Aggressiv</h4><div class="step-body">'+esc(d.risk_debate.aggressive_history||'—')+'</div></div><div class="debate-side conservative-side"><h4>Konservativ</h4><div class="step-body">'+esc(d.risk_debate.conservative_history||'—')+'</div></div><div class="debate-side neutral-side"><h4>Neutral</h4><div class="step-body">'+esc(d.risk_debate.neutral_history||'—')+'</div></div></div>';
+riskHtml+='<div class="judge-box"><h4>Risk Manager</h4><div class="step-body">'+esc(d.risk_debate.judge_decision)+'</div></div>';
+steps.push({label:'Risiko-Debatte',bodyHtml:riskHtml});
+}
+if(d.decision&&d.decision!=='Analysis completed'){steps.push({label:'Finale Entscheidung',body:d.decision})}
+if(steps.length>1){
+steps.forEach((s,i)=>{
+let body=s.isSummary?'<div style="color:var(--muted);font-style:italic">'+s.body+'</div>':(s.bodyHtml||'<div class="step-body">'+esc(s.body)+'</div>');
+df.innerHTML+='<div class="decision-step"><div class="step-arrow">'+(i===0?'🔍':'⬇️')+'</div><div class="step-content"><div class="step-label">'+s.label+'</div>'+body+'</div></div>';
+});
+df.style.display='flex';
+}else{df.style.display='none'}
 if(d.reports)Object.entries(d.reports).forEach(([k,v])=>{if(v)co.innerHTML+=mk(k,v)});
 res.style.display='block';res.scrollIntoView({behavior:'smooth'})}
 function mk(k,c,s=false){const id='r'+k.replace(/[^a-zA-Z]/g,'');return'<div class="result-section"><div class="result-header'+(s?' open':'')+'" onclick="tog(\''+id+'\')"><h3>'+repLabels[k]||k+'</h3><span>▼</span></div><div class="result-body'+(s?' open':'')+'" id="'+id+'"><pre>'+esc(c)+'</pre></div></div>'}
