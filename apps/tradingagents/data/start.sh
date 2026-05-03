@@ -158,22 +158,29 @@ async def analyze(req: AnalyzeRequest):
     elif lang not in ("en", "de", "zh", "ja", "ko", "fr"):
         lang = "en"
 
-    # Auto-select a fast model for quick_think (orchestration steps)
-    # while keeping the configured model for deep_think (analysis quality)
+    # Auto-select a fast, non-reasoning model for quick_think (orchestration steps)
+    # while keeping the configured model for deep_think (analysis quality).
+    #
+    # IMPORTANT: quick_think must use a model that does NOT support reasoning_effort,
+    # because TradingAgents passes reasoning_effort to ALL LLM calls (including quick).
+    # Models like gpt-5.4-mini, o3-mini reject reasoning_effort on /v1/chat/completions.
+    # Similarly, Anthropic Haiku/Sonnet reject the effort param in tool-calling mode.
     quick_model_map = {
-        # OpenAI
-        "gpt-5.4": "gpt-5.4-mini",
-        "gpt-5.4-mini": "gpt-5.4-mini",
-        "gpt-5": "gpt-5-mini",
-        "gpt-5-mini": "gpt-5-mini",
-        "gpt-4.5": "gpt-4.5-mini",
+        # OpenAI reasoning models → fast non-reasoning model (safe for reasoning_effort param)
+        "gpt-5.4": "gpt-4.1",
+        "gpt-5.4-mini": "gpt-4.1-mini",
+        "gpt-5": "gpt-4.1",
+        "gpt-5-mini": "gpt-4.1-mini",
+        "gpt-4.5": "gpt-4.1",
         "gpt-4.1": "gpt-4.1-mini",
         "gpt-4.1-mini": "gpt-4.1-mini",
-        "o3": "o3-mini",
-        "o4": "o4-mini",
-        # Anthropic
-        "claude-sonnet-4": "claude-haiku-4",
-        "claude-sonnet-4-20250514": "claude-haiku-4-20250929",
+        "o3": "gpt-4.1",
+        "o3-mini": "gpt-4.1-mini",
+        "o4": "gpt-4.1",
+        "o4-mini": "gpt-4.1-mini",
+        # Anthropic → use cheaper model of same family (effort param is ok for Sonnet/Opus)
+        "claude-sonnet-4": "claude-sonnet-4-20250514",
+        "claude-sonnet-4-20250514": "claude-sonnet-4-20250514",
         "claude-opus-4": "claude-sonnet-4-20250514",
         # Others keep the same (already fast enough or no alternative)
     }
