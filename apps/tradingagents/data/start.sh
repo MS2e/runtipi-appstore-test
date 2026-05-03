@@ -158,29 +158,47 @@ async def analyze(req: AnalyzeRequest):
     elif lang not in ("en", "de", "zh", "ja", "ko", "fr"):
         lang = "en"
 
+    # Auto-select a fast model for quick_think (orchestration steps)
+    # while keeping the configured model for deep_think (analysis quality)
+    quick_model_map = {
+        # OpenAI
+        "gpt-5.4": "gpt-5.4-mini",
+        "gpt-5.4-mini": "gpt-5.4-mini",
+        "gpt-5": "gpt-5-mini",
+        "gpt-5-mini": "gpt-5-mini",
+        "gpt-4.5": "gpt-4.5-mini",
+        "gpt-4.1": "gpt-4.1-mini",
+        "gpt-4.1-mini": "gpt-4.1-mini",
+        "o3": "o3-mini",
+        "o4": "o4-mini",
+        # Anthropic
+        "claude-sonnet-4": "claude-haiku-4",
+        "claude-sonnet-4-20250514": "claude-haiku-4-20250929",
+        "claude-opus-4": "claude-sonnet-4-20250514",
+        # Others keep the same (already fast enough or no alternative)
+    }
+    quick_model = quick_model_map.get(model, model)
+
     config = TradingAgentsConfig(
         llm_provider=v3_provider,
         deep_think_llm=model,
-        quick_think_llm=model,
-        max_debate_rounds=0,     # Reduce to avoid timeouts
+        quick_think_llm=quick_model,
+        max_debate_rounds=0,
         max_risk_discuss_rounds=0,
         max_recur_limit=50,
         response_language=lang,
-        reasoning_effort="low",  # Faster responses
         results_dir=Path("/root/.tradingagents/logs"),
     )
 
-    # Increase HTTP timeouts to avoid Cloudflare 524 (100s limit)
-    # TradingAgents runs multiple sequential LLM calls
-    os.environ.setdefault("OPENAI_TIMEOUT", "300")
+    # Extend HTTP timeouts for multi-step analysis
+    # Cloudflare free tier: 100s per request, but our container sits behind
+    # RunTipi's nginx which has its own proxy_read_timeout (600s default)
+    os.environ.setdefault("OPENAI_TIMEOUT", "600")
     os.environ.setdefault("OPENAI_MAX_RETRIES", "3")
-    os.environ.setdefault("ANTHROPIC_TIMEOUT", "300")
+    os.environ.setdefault("ANTHROPIC_TIMEOUT", "600")
 
-    # Limit default analysts to avoid timeouts (user can add more)
-    # If user selected all 4, reduce to just market for speed
-    if len(req.analysts) > 2 and v3_provider == "openai":
-        log.info(f"Reducing analysts from {req.analysts} to ['market'] for Cloudflare compatibility")
-        req.analysts = ["market"]
+    # Analysten-Reduktion entfernt — mit 15 Min Timeout und quick_think_llm
+    # läuft auch die Vollanalyse durch (deep_think bleibt das konfigurierte Modell)
 
     try:
         ta = TradingAgentsGraph(
@@ -193,10 +211,10 @@ async def analyze(req: AnalyzeRequest):
 
     try:
         loop = asyncio.get_event_loop()
-        # 5-minute timeout to avoid hanging forever
+        # 15-minute timeout — gives slow models (DeepSeek, Ollama) breathing room
         final_state, signal = await asyncio.wait_for(
             loop.run_in_executor(None, lambda: ta.propagate(req.ticker, req.date)),
-            timeout=300
+            timeout=900
         )
 
         reports={}
@@ -211,10 +229,10 @@ async def analyze(req: AnalyzeRequest):
             reports=reports if reports else None,
         )
     except asyncio.TimeoutError:
-        log.error(f"Analysis timed out for {req.ticker} after 300s")
+        log.error(f"Analysis timed out for {req.ticker} after 900s")
         return AnalyzeResponse(
             success=False, ticker=req.ticker,
-            error="Analyse hat 5 Minuten überschritten. Versuche mit nur 'market'-Analysten oder einem schnelleren LLM.",
+            error="Analyse hat 15 Minuten überschritten. Versuche mit nur 'market'-Analysten oder einem schnelleren LLM.",
         )
     except Exception as e:
         err_str = str(e)
