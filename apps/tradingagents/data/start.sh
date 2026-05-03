@@ -314,31 +314,40 @@ async def analyze(req: AnalyzeRequest):
             error="No API key configured. Set TRADINGAGENTS_API_KEY in RunTipi app settings.",
         )
 
-    # Monkey-patch _create_llm to filter reasoning_effort for non-reasoning models
+    # Monkey-patch LLM clients to strip reasoning_effort for non-reasoning models.
+    # TradingAgents v0.3.1 unconditionally passes reasoning_effort to all LLM backends.
+    # OpenAI's /v1/chat rejects it for gpt-4.1, gpt-3.5, etc. (400 error).
+    # Anthropic's API rejects it for non-reasoning Claude models.
+    # FIX: Intercept at client __init__ and drop the param for incompatible models.
+    # Must run BEFORE TradingAgentsGraph is instantiated.
     try:
-        from tradingagents.graph.trading_graph import TradingAgentsGraph
-        from langchain_core.language_models.chat_models import BaseChatModel
+        REASONING_KEYS = ("o3", "o4", "gpt-5.4", "gpt-4.5", "gpt-5.1")
 
-        _orig_create_llm = TradingAgentsGraph._create_llm
+        def _make_safe_init(OrigClass, is_reasoning_fn):
+            orig_init = OrigClass.__init__
+            def safe_init(self, *args, **kwargs):
+                model = str(kwargs.get("model", kwargs.get("model_name", "")))
+                if not is_reasoning_fn(model.lower()):
+                    kwargs.pop("reasoning_effort", None)
+                return orig_init(self, *args, **kwargs)
+            return safe_init
 
-        def _safe_create_llm(self, model_name: str):
-            model_lower = model_name.lower()
-            is_reasoning = any(k in model_lower for k in ("o3", "o4", "gpt-5.4", "gpt-4.5", "gpt-5.1"))
-            if not is_reasoning:
-                import inspect
-                sig = inspect.signature(_orig_create_llm)
-                if "reasoning_effort" in sig.parameters:
-                    cls = self.__class__
-                    old_init = cls.__init__
-                    def patched_init(self_obj, **kw):
-                        kw.pop("reasoning_effort", None)
-                        old_init(self_obj, **kw)
-                    cls.__init__ = patched_init
-            return _orig_create_llm(self, model_name)
+        # OpenAI models
+        from langchain_openai import ChatOpenAI
+        ChatOpenAI.__init__ = _make_safe_init(ChatOpenAI,
+            lambda ml: any(k in ml for k in REASONING_KEYS))
 
-        TradingAgentsGraph._create_llm = _safe_create_llm
-    except Exception as patch_err:
-        log.warning(f"Monkey-patch for reasoning_effort failed: {patch_err}")
+        # Anthropic Claude (Claude 4 Sonnet/Opus support reasoning_effort)
+        try:
+            from langchain_anthropic import ChatAnthropic
+            ChatAnthropic.__init__ = _make_safe_init(ChatAnthropic,
+                lambda ml: any(k in ml for k in ("claude-sonnet-4", "claude-opus-4", "claude-3.5-sonnet", "claude-3-opus")))
+        except ImportError:
+            pass
+
+        log.info("Monkey-patch: reasoning_effort stripped for non-reasoning models")
+    except Exception as _pe:
+        log.warning(f"Monkey-patch for reasoning_effort failed: {_pe}")
 
     quick_model_map = {
         "gpt-5.4": "gpt-4.1",
