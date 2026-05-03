@@ -8,7 +8,7 @@
   "categories": ["ai", "finance"],
   "description": "TradingAgents ist ein Multi-Agenten LLM Framework, das die Dynamik von Trading-Firmen nachbildet. KI-Agenten analysieren gemeinsam Finanzmärkte — von Fundamentalanalyse über Sentiment bis Risk Management — und treffen Trading-Entscheidungen durch strukturierte Diskussionen.\n\nFeatures:\n- Multi-Agent-Architektur: Fundamentals, Sentiment, News, Technical Analysts + Researcher, Trader, Risk Management, Portfolio Manager\n- Unterstützt OpenAI, Anthropic, Google Gemini, DeepSeek, xAI, Qwen, GLM, OpenRouter, Ollama\n- Web UI mit strukturierten Analysten-Berichten und Trading-Signal\n- Backtesting und Portfolio-Management\n\nBasiert auf der Forschung von TauricResearch (arXiv:2412.20138). 59.6k+ GitHub Stars.",
   "tipi_version": 2,
-  "version": "2.1.9",
+  "version": "2.2.0",
   "source": "https://github.com/TauricResearch/TradingAgents",
   "exposable": true,
   "supported_architectures": ["arm64", "amd64"],
@@ -44,13 +44,17 @@
       "max": 100
     },
     {
-      "type": "text",
-      "label": "Output Language",
+      "type": "select",
+      "label": "Language / Sprache",
       "env_variable": "TRADINGAGENTS_OUTPUT_LANGUAGE",
-      "hint": "Sprache für Berichte und Entscheidungen (English, German, Deutsch, 中文)",
-      "default": "English",
-      "min": 0,
-      "max": 30
+      "hint": "Language for analysis and UI (English, Deutsch, Français, Español)",
+      "default": "en",
+      "options": [
+        {"label": "🇬🇧 English", "value": "en"},
+        {"label": "🇩🇪 Deutsch", "value": "de"},
+        {"label": "🇫🇷 Français", "value": "fr"},
+        {"label": "🇪🇸 Español", "value": "es"}
+      ]
     },
     {
       "type": "text",

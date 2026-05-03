@@ -1,54 +1,217 @@
 #!/bin/bash
 set -e
-echo "====================================="
-echo "  TradingAgents Web v1.2.1"
-echo "====================================="
 
-# Inline all app files — no volume mounts needed for these
-# This ensures updates always reach the running container
+export PATH="/root/.hermes/bin:/usr/local/bin:/usr/bin:/bin"
+export PYTHONDONTWRITEBYTECODE=1
 
-cat > /tmp/server.py << 'SERVEREOF'
-"""TradingAgents Web API — FastAPI wrapper for TradingAgents CLI."""
-import os
-import sys
-import asyncio
-import json
-import logging
+mkdir -p /tmp/web /tmp/server
+
+# Generate translations.js based on configured language
+LANG="${TRADINGAGENTS_OUTPUT_LANGUAGE:-en}"
+case "$LANG" in
+    de|German|Deutsch) LANG="de" ;;
+    fr|Français) LANG="fr" ;;
+    es|Español) LANG="es" ;;
+    *) LANG="en" ;;
+esac
+
+cat > /tmp/web/translations.js << TRBASEOF
+const LANG = "${LANG}";
+const T = {
+  en: {
+    ticker: "Ticker",
+    date: "Date (leave blank for today)",
+    analyze: "Analyze",
+    analysts: "Analysts",
+    cb_market: "Market",
+    cb_social: "Social",
+    cb_news: "News",
+    cb_fundamentals: "Fundamentals",
+    results: "Results",
+    checking: "Checking config...",
+    no_api: "No API Key",
+    analyzing: "Analyzing",
+    done: "Done",
+    error: "Error",
+    network: "Network",
+    validate: "Please enter a ticker and select analysts",
+    footer: "TradingAgents Research Tool — not financial advice",
+    sig_buy: "Buy",
+    sig_overweight: "Overweight",
+    sig_hold: "Hold",
+    sig_underweight: "Underweight",
+    sig_sell: "Sell",
+    rep_market: "Market Analyst",
+    rep_sentiment: "Sentiment Analyst",
+    rep_news: "News Analyst",
+    rep_fundamentals: "Fundamentals Analyst",
+    step_debate: "Investment Debate",
+    step_investment: "Investment Plan",
+    step_trader: "Trader Plan",
+    step_risk: "Risk Debate",
+    step_final: "Final Decision",
+    bull: "Bull",
+    bear: "Bear",
+    aggressive: "Aggressive",
+    conservative: "Conservative",
+    neutral: "Neutral",
+    research_mgr: "Research Manager",
+    risk_mgr: "Risk Manager",
+  },
+  de: {
+    ticker: "Ticker",
+    date: "Datum (leer = heute)",
+    analyze: "Analysieren",
+    analysts: "Analysten",
+    cb_market: "Markt",
+    cb_social: "Social",
+    cb_news: "Nachrichten",
+    cb_fundamentals: "Fundamentals",
+    results: "Ergebnisse",
+    checking: "Konfiguration prüfen...",
+    no_api: "Kein API Key",
+    analyzing: "Analysiere",
+    done: "Fertig",
+    error: "Fehler",
+    network: "Netzwerk",
+    validate: "Bitte Ticker eingeben und Analysten wählen",
+    footer: "TradingAgents Recherche-Tool — keine Finanzberatung",
+    sig_buy: "Kaufen",
+    sig_overweight: "Übergewichten",
+    sig_hold: "Halten",
+    sig_underweight: "Untergewichten",
+    sig_sell: "Verkaufen",
+    rep_market: "Markt-Analyst",
+    rep_sentiment: "Sentiment-Analyst",
+    rep_news: "News-Analyst",
+    rep_fundamentals: "Fundamentals-Analyst",
+    step_debate: "Investitions-Debatte",
+    step_investment: "Investment-Plan",
+    step_trader: "Trader-Plan",
+    step_risk: "Risiko-Debatte",
+    step_final: "Finale Entscheidung",
+    bull: "Bull",
+    bear: "Bear",
+    aggressive: "Aggressiv",
+    conservative: "Konservativ",
+    neutral: "Neutral",
+    research_mgr: "Research Manager",
+    risk_mgr: "Risk Manager",
+  },
+  fr: {
+    ticker: "Ticker",
+    date: "Date (laisser vide pour aujourd'hui)",
+    analyze: "Analyser",
+    analysts: "Analystes",
+    cb_market: "Marché",
+    cb_social: "Social",
+    cb_news: "Actualités",
+    cb_fundamentals: "Fondamentaux",
+    results: "Résultats",
+    checking: "Vérification de la config...",
+    no_api: "Aucune clé API",
+    analyzing: "Analyse en cours",
+    done: "Terminé",
+    error: "Erreur",
+    network: "Réseau",
+    validate: "Veuillez entrer un ticker et sélectionner des analystes",
+    footer: "Outil de recherche TradingAgents — pas un conseil financier",
+    sig_buy: "Acheter",
+    sig_overweight: "Surpondérer",
+    sig_hold: "Maintenir",
+    sig_underweight: "Sous-pondérer",
+    sig_sell: "Vendre",
+    rep_market: "Analyste Marché",
+    rep_sentiment: "Analyste Sentiment",
+    rep_news: "Analyste Actualités",
+    rep_fundamentals: "Analyste Fondamentaux",
+    step_debate: "Débat d'Investissement",
+    step_investment: "Plan d'Investissement",
+    step_trader: "Plan du Trader",
+    step_risk: "Débat sur les Risques",
+    step_final: "Décision Finale",
+    bull: "Bull",
+    bear: "Bear",
+    aggressive: "Agressif",
+    conservative: "Conservateur",
+    neutral: "Neutre",
+    research_mgr: "Chef Recherche",
+    risk_mgr: "Chef Risques",
+  },
+  es: {
+    ticker: "Ticker",
+    date: "Fecha (dejar vacío para hoy)",
+    analyze: "Analizar",
+    analysts: "Analistas",
+    cb_market: "Mercado",
+    cb_social: "Social",
+    cb_news: "Noticias",
+    cb_fundamentals: "Fundamentos",
+    results: "Resultados",
+    checking: "Verificando configuración...",
+    no_api: "Sin clave API",
+    analyzing: "Analizando",
+    done: "Listo",
+    error: "Error",
+    network: "Red",
+    validate: "Por favor ingrese un ticker y seleccione analistas",
+    footer: "Herramienta de investigación TradingAgents — no es asesoría financiera",
+    sig_buy: "Comprar",
+    sig_overweight: "Sopesar",
+    sig_hold: "Mantener",
+    sig_underweight: "Subpesar",
+    sig_sell: "Vender",
+    rep_market: "Analista de Mercado",
+    rep_sentiment: "Analista de Sentimiento",
+    rep_news: "Analista de Noticias",
+    rep_fundamentals: "Analista de Fundamentos",
+    step_debate: "Debate de Inversión",
+    step_investment: "Plan de Inversión",
+    step_trader: "Plan del Trader",
+    step_risk: "Debate de Riesgo",
+    step_final: "Decisión Final",
+    bull: "Bull",
+    bear: "Bear",
+    aggressive: "Agresivo",
+    conservative: "Conservador",
+    neutral: "Neutral",
+    research_mgr: "Jefe de Investigación",
+    risk_mgr: "Jefe de Riesgos",
+  },
+};
+const t = T[LANG] || T.en;
+TRBASEOF
+
+echo "🌐 Language set to: ${LANG}"
+
+# Write Python server
+cat > /tmp/server/server.py << 'SERVEREOF'
+import os, sys, logging, asyncio, time
 from pathlib import Path
-from typing import Optional
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional, List
 
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger("ta")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger("tradingagents-app")
 
-app = FastAPI(title="TradingAgents Web")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="/tmp/web"), name="static")
 
-# Monkey-patch TradingAgents at module level (before any TradingAgentsGraph is created).
-# gpt-4.1, gpt-5 (non-reasoning), gpt-3.5 and gpt-*-mini all reject
-# reasoning_effort on /v1/chat/completions — only o3, o4, gpt-5.4, sonnet-4,
-# opus-4 and gemini support it. Patch _create_llm so every TradingAgentsGraph
-# instance skips reasoning params for non-reasoning models.
-import tradingagents.llm as _ta_llm
-from tradingagents.graph.trading_graph import TradingAgentsGraph as _TAG
+lang = os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE", "en")
+if lang in ("German", "Deutsch", "German"):
+    lang = "de"
+elif lang not in ("en", "de", "zh", "ja", "ko", "fr", "es"):
+    lang = "en"
 
-_orig_create_llm = _TAG._create_llm
-def _safe_create_llm(self, m):
-    ml = m.lower()
-    is_reasoning = any(k in ml for k in ("o3", "o4", "gpt-5.4", "sonnet-4", "opus-4", "gemini"))
-    effort = self.config.reasoning_effort if is_reasoning else None
-    return _ta_llm.build_chat_model(
-        self.config.llm_provider, m, reasoning_effort=effort,
-        callbacks=self.callbacks or None,
-    )
-_TAG._create_llm = _safe_create_llm
-
-WEB_DIR = Path("/tmp/web")
-WEB_DIR.mkdir(exist_ok=True)
+@app.get("/", response_class=HTMLResponse)
+async def index():
+    html_path = Path("/tmp/web/index.html")
+    if html_path.exists():
+        return html_path.read_text()
+    return "<h1>Loading...</h1>"
 
 class AnalyzeRequest(BaseModel):
     ticker: str = "AAPL"
@@ -69,56 +232,41 @@ class AnalyzeResponse(BaseModel):
 
 class StatusResponse(BaseModel):
     configured: bool
-    provider: str
-    model: str
-    ticker: str
+    provider: str = ""
+    model: str = ""
+    ticker: str = ""
+    lang: str = ""
 
-@app.get("/", response_class=HTMLResponse)
-async def index():
-    html = WEB_DIR / "index.html"
-    if html.exists():
-        return HTMLResponse(html.read_text())
-    return HTMLResponse("<h1>TradingAgents</h1><p>Loading...</p>")
+installed = Path("/tmp/.tradingagents_installed")
 
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
-
-@app.get("/api/env")
-async def env_debug():
-    relevant = ["TRADINGAGENTS_LLM_PROVIDER", "TRADINGAGENTS_API_KEY",
-                "TRADINGAGENTS_DEFAULT_MODEL", "TRADINGAGENTS_OUTPUT_LANGUAGE",
-                "TRADINGAGENTS_INITIAL_TICKER",
-                "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY",
-                "DEEPSEEK_API_KEY", "XAI_API_KEY", "OPENROUTER_API_KEY"]
-    result = {}
-    for k in relevant:
-        v = os.getenv(k, "")
-        if v:
-            result[k] = "***" if len(v) > 4 else v
-    return {"env_vars": result}
-
-@app.get("/api/status", response_model=StatusResponse)
-async def get_status():
+@app.get("/api/status")
+async def status():
+    api_key = os.getenv("TRADINGAGENTS_API_KEY") or os.getenv("TRADINGAGENTS_API_KEYS")
+    if not api_key:
+        return StatusResponse(configured=False)
     provider = os.getenv("TRADINGAGENTS_LLM_PROVIDER", "openai")
-    api_key = os.getenv("TRADINGAGENTS_API_KEY", "")
     model = os.getenv("TRADINGAGENTS_DEFAULT_MODEL", "gpt-5.4")
     ticker = os.getenv("TRADINGAGENTS_INITIAL_TICKER", "AAPL")
-    return StatusResponse(
-        configured=bool(api_key and api_key != "***"),
-        provider=provider,
-        model=model,
-        ticker=ticker,
-    )
+    return StatusResponse(configured=True, provider=provider, model=model, ticker=ticker, lang=lang)
 
-@app.post("/api/analyze", response_model=AnalyzeResponse)
+@app.get("/translations.js")
+async def translations():
+    from fastapi.responses import FileResponse
+    return FileResponse("/tmp/web/translations.js", media_type="application/javascript")
+
+@app.post("/api/analyze")
 async def analyze(req: AnalyzeRequest):
-    """Run TradingAgents analysis."""
-    # Check if installed
-    if not os.path.exists("/tmp/.tradingagents_installed"):
+    if not installed.exists():
         return AnalyzeResponse(
             success=False, ticker=req.ticker,
             error="TradingAgents not installed yet. Please wait 2-5 minutes for initial setup.",
+        )
+
+    api_key = os.getenv("TRADINGAGENTS_API_KEY") or os.getenv("TRADINGAGENTS_API_KEYS")
+    if not api_key:
+        return AnalyzeResponse(
+            success=False, ticker=req.ticker,
+            error="No API key configured. Set TRADINGAGENTS_API_KEY in RunTipi app settings.",
         )
 
     try:
@@ -133,14 +281,13 @@ async def analyze(req: AnalyzeRequest):
     provider = os.getenv("TRADINGAGENTS_LLM_PROVIDER", "openai")
     model = os.getenv("TRADINGAGENTS_DEFAULT_MODEL", "gpt-5.4")
 
-    # Map our provider names to v0.3.1 LLMProvider values
     provider_map = {
         "openai": "openai", "anthropic": "anthropic",
         "google": "google_genai", "google_genai": "google_genai",
         "deepseek": "litellm", "xai": "xai",
         "qwen": "litellm", "glm": "litellm",
         "openrouter": "openrouter", "ollama": "ollama",
-        "azure": "openai",  # Azure uses OpenAI client
+        "azure": "openai",
     }
     v3_provider = provider_map.get(provider, provider)
 
@@ -148,24 +295,17 @@ async def analyze(req: AnalyzeRequest):
         "openai": "OPENAI_API_KEY", "anthropic": "ANTHROPIC_API_KEY",
         "google_genai": "GOOGLE_API_KEY", "xai": "XAI_API_KEY",
         "openrouter": "OPENROUTER_API_KEY",
-        "litellm": "OPENAI_API_KEY",  # litellm needs a base key
-        "ollama": None, "huggingface": "HUGGINGFACE_API_KEY",
     }
-    api_key = os.getenv("TRADINGAGENTS_API_KEY", "")
-    key_env = api_key_map.get(v3_provider) or api_key_map.get(provider)
-
-    if key_env and api_key and api_key != "***":
-        os.environ[key_env] = api_key
-        # For litellm-based providers, also set LITELLM key
-        if v3_provider == "litellm":
-            os.environ["LITELLM_API_KEY"] = api_key
-            # Set provider-specific base_url for litellm
-            if provider == "deepseek":
-                os.environ["LITELLM_BASE_URL"] = "https://api.deepseek.com"
-            elif provider == "qwen":
-                os.environ["LITELLM_BASE_URL"] = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-            elif provider == "glm":
-                os.environ["LITELLM_BASE_URL"] = "https://api.z.ai/api/paas/v4/"
+    if v3_provider in api_key_map:
+        os.environ[api_key_map[v3_provider]] = api_key
+    elif v3_provider == "litellm":
+        os.environ["LITELLM_API_KEY"] = api_key
+        if provider == "deepseek":
+            os.environ["LITELLM_BASE_URL"] = "https://api.deepseek.com"
+        elif provider == "qwen":
+            os.environ["LITELLM_BASE_URL"] = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+        elif provider == "glm":
+            os.environ["LITELLM_BASE_URL"] = "https://api.z.ai/api/paas/v4/"
     elif v3_provider == "ollama":
         pass
     else:
@@ -174,24 +314,37 @@ async def analyze(req: AnalyzeRequest):
             error="No API key configured. Set TRADINGAGENTS_API_KEY in RunTipi app settings.",
         )
 
-    # Build config using v0.3.1 Pydantic model
-    lang = os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE", "en")
-    if lang in ("German", "Deutsch", "German"):
-        lang = "de"
-    elif lang not in ("en", "de", "zh", "ja", "ko", "fr"):
-        lang = "en"
+    # Monkey-patch _create_llm to filter reasoning_effort for non-reasoning models
+    try:
+        from tradingagents.graph.trading_graph import TradingAgentsGraph
+        from langchain_core.language_models.chat_models import BaseChatModel
 
-    # Auto-select a fast model for quick_think (orchestration steps)
-    # while keeping the configured model for deep_think (analysis quality).
-    #
-    # IMPORTANT: quick_think MUST NOT use mini variants of reasoning models
-    # (gpt-5.4-mini, o3-mini) because they reject reasoning_effort on /v1/chat.
-    # Map to fully-compatible non-reasoning fast models instead.
+        _orig_create_llm = TradingAgentsGraph._create_llm
+
+        def _safe_create_llm(self, model_name: str):
+            model_lower = model_name.lower()
+            is_reasoning = any(k in model_lower for k in ("o3", "o4", "gpt-5.4", "gpt-4.5", "gpt-5.1"))
+            if not is_reasoning:
+                import inspect
+                sig = inspect.signature(_orig_create_llm)
+                if "reasoning_effort" in sig.parameters:
+                    cls = self.__class__
+                    old_init = cls.__init__
+                    def patched_init(self_obj, **kw):
+                        kw.pop("reasoning_effort", None)
+                        old_init(self_obj, **kw)
+                    cls.__init__ = patched_init
+            return _orig_create_llm(self, model_name)
+
+        TradingAgentsGraph._create_llm = _safe_create_llm
+    except Exception as patch_err:
+        log.warning(f"Monkey-patch for reasoning_effort failed: {patch_err}")
+
     quick_model_map = {
-        # OpenAI reasoning models → fast non-reasoning (reasoning_effort compatible)
         "gpt-5.4": "gpt-4.1",
-        "gpt-5.4-mini": "gpt-4.1-mini",
         "gpt-5": "gpt-4.1",
+        "gpt-5.4-mini": "gpt-4.1-mini",
+        "gpt-5.1": "gpt-4.1",
         "gpt-5-mini": "gpt-4.1-mini",
         "gpt-4.5": "gpt-4.1",
         "gpt-4.1": "gpt-4.1-mini",
@@ -200,11 +353,9 @@ async def analyze(req: AnalyzeRequest):
         "o3-mini": "gpt-4.1-mini",
         "o4": "gpt-4.1",
         "o4-mini": "gpt-4.1-mini",
-        # Anthropic → cheaper model of same family (effort param ok for Sonnet)
         "claude-sonnet-4": "claude-sonnet-4-20250514",
         "claude-sonnet-4-20250514": "claude-sonnet-4-20250514",
         "claude-opus-4": "claude-sonnet-4-20250514",
-        # Others keep the same (already fast enough or no alternative)
     }
     quick_model = quick_model_map.get(model, model)
 
@@ -220,16 +371,6 @@ async def analyze(req: AnalyzeRequest):
         reasoning_effort="low",
     )
 
-    # Extend HTTP timeouts for multi-step analysis
-    # Cloudflare free tier: 100s per request, but our container sits behind
-    # RunTipi's nginx which has its own proxy_read_timeout (600s default)
-    os.environ.setdefault("OPENAI_TIMEOUT", "600")
-    os.environ.setdefault("OPENAI_MAX_RETRIES", "3")
-    os.environ.setdefault("ANTHROPIC_TIMEOUT", "600")
-
-    # Analysten-Reduktion entfernt — mit 15 Min Timeout und quick_think_llm
-    # läuft auch die Vollanalyse durch (deep_think bleibt das konfigurierte Modell)
-
     try:
         ta = TradingAgentsGraph(
             selected_analysts=req.analysts,
@@ -241,20 +382,17 @@ async def analyze(req: AnalyzeRequest):
 
     try:
         loop = asyncio.get_event_loop()
-        # 15-minute timeout — gives slow models (DeepSeek, Ollama) breathing room
         final_state, signal = await asyncio.wait_for(
             loop.run_in_executor(None, lambda: ta.propagate(req.ticker, req.date)),
             timeout=900
         )
 
-        # final_state is a Pydantic AgentState — extract full decision chain
         reports = {}
         for key in ["market_report", "sentiment_report", "news_report", "fundamentals_report"]:
             val = getattr(final_state, key, "")
             if val:
                 reports[key] = str(val)[:8000]
 
-        # Investment debate (bull vs bear → research manager)
         debate = getattr(final_state, "investment_debate_state", None)
         debate_data = None
         if debate:
@@ -265,7 +403,6 @@ async def analyze(req: AnalyzeRequest):
                 "rounds": getattr(debate, "count", 0),
             }
 
-        # Risk debate (aggressive vs conservative vs neutral → risk manager)
         risk_debate = getattr(final_state, "risk_debate_state", None)
         risk_data = None
         if risk_debate:
@@ -294,43 +431,36 @@ async def analyze(req: AnalyzeRequest):
         log.error(f"Analysis timed out for {req.ticker} after 900s")
         return AnalyzeResponse(
             success=False, ticker=req.ticker,
-            error="Analyse hat 15 Minuten überschritten. Versuche mit nur 'market'-Analysten oder einem schnelleren LLM.",
+            error="Analysis exceeded 15 minutes. Try with fewer analysts or a faster LLM.",
         )
     except Exception as e:
         err_str = str(e)
-        # Catch SDK-level 5xx errors (provider or proxy failure)
         failed_code = next((c for c in ["502", "503", "504", "524"] if c in err_str), None)
         if failed_code:
             log.error(f"API returned {failed_code} for {req.ticker}: {err_str[:200]}")
             return AnalyzeResponse(
                 success=False, ticker=req.ticker,
-                error=f"API-Fehler ({failed_code}). Provider temporär nicht erreichbar — bitte später erneut versuchen.",
+                error=f"API error ({failed_code}). Provider temporarily unavailable — please try again later.",
             )
-        # Catch Pydantic validation failures (SDK returned malformed response)
-        if "validation failed" in err_str.lower() or "Response validation" in err_str:
-            log.error(f"SDK returned malformed response for {req.ticker}: {err_str[:200]}")
+        pydantic_err = next((k for k in ["validation_error", "Field required", "extra_forbidden", "reasoning_effort"] if k.lower() in err_str.lower()), None)
+        if pydantic_err:
+            log.error(f"Pydantic validation error for {req.ticker}: {err_str[:300]}")
             return AnalyzeResponse(
                 success=False, ticker=req.ticker,
-                error="API hat eine fehlerhafte Antwort gesendet. Provider-Seite hat eventuell einen internen Fehler — bitte später erneut versuchen.",
+                error="Model compatibility error. The selected model may not support all required parameters.",
             )
-        # Catch connection reset / network errors
-        if "connection" in err_str.lower() or "reset" in err_str.lower():
-            log.error(f"Connection error for {req.ticker}: {err_str[:200]}")
-            return AnalyzeResponse(
-                success=False, ticker=req.ticker,
-                error="Verbindung zum LLM-Provider ist abgebrochen. Prüfe Netzwerk oder Proxy-Konfiguration — bitte erneut versuchen.",
-            )
-        log.error(f"Analysis failed for {req.ticker}: {e}", exc_info=True)
-        return AnalyzeResponse(success=False, ticker=req.ticker, error=f"Analysis failed: {err_str[:500]}")
-
-app.mount("/static", StaticFiles(directory=str(WEB_DIR)), name="static")
+        log.error(f"Analysis failed for {req.ticker}: {err_str[:500]}")
+        return AnalyzeResponse(
+            success=False, ticker=req.ticker,
+            error=f"Analysis failed: {err_str[:500]}",
+        )
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
 SERVEREOF
 
-mkdir -p /tmp/web
+# Write HTML (static — all dynamic strings come from translations.js)
 cat > /tmp/web/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="de">
@@ -354,8 +484,6 @@ h1{font-size:2rem;background:linear-gradient(135deg,var(--primary),var(--accent)
 .checkbox-group label{display:flex;align-items:center;gap:.4rem;font-size:.9rem;color:var(--text);cursor:pointer}
 button#analyze{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;border-radius:8px;padding:.65rem 2rem;font-size:1rem;font-weight:600;cursor:pointer}
 button#analyze:disabled{opacity:.4;cursor:not-allowed}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--muted);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite;margin-right:.5rem;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
 .signal-badge{display:inline-block;padding:.5rem 1.5rem;border-radius:99px;font-size:1.5rem;font-weight:700;margin:.5rem 0}
 .signal-buy{background:rgba(16,185,129,.2);color:#34d399;border:2px solid #34d399}
 .signal-overweight{background:rgba(59,130,246,.2);color:#60a5fa;border:2px solid #60a5fa}
@@ -400,21 +528,21 @@ button#analyze:disabled{opacity:.4;cursor:not-allowed}
 <body>
 <div class="container">
 <h1>TradingAgents</h1>
-<div><span class="badge" id="status-badge">Checking config...</span></div>
+<div><span class="badge" id="status-badge"></span></div>
 <section style="margin-top:2rem">
 <div class="form-area">
 <div class="form-row">
-<div class="form-group"><label>Ticker</label><input type="text" id="ticker" value="AAPL"></div>
-<div class="form-group"><label>Datum (leer=heute)</label><input type="date" id="date"></div>
-<button id="analyze" onclick="runAnalysis()">Analysieren</button>
+<div class="form-group"><label id="lbl-ticker"></label><input type="text" id="ticker" value="AAPL"></div>
+<div class="form-group"><label id="lbl-date"></label><input type="date" id="date"></div>
+<button id="analyze" onclick="runAnalysis()"></button>
 </div>
 <div class="form-group" style="margin-bottom:1rem">
-<label>Analysten</label>
+<label id="lbl-analysts"></label>
 <div class="checkbox-group">
-<label><input type="checkbox" value="market" checked> Market</label>
-<label><input type="checkbox" value="social" checked> Social</label>
-<label><input type="checkbox" value="news" checked> News</label>
-<label><input type="checkbox" value="fundamentals" checked> Fundamentals</label>
+<label><input type="checkbox" value="market" checked><span id="cb-market"></span></label>
+<label><input type="checkbox" value="social" checked><span id="cb-social"></span></label>
+<label><input type="checkbox" value="news" checked><span id="cb-news"></span></label>
+<label><input type="checkbox" value="fundamentals" checked><span id="cb-fundamentals"></span></label>
 </div>
 </div>
 <div id="status"></div>
@@ -422,74 +550,83 @@ button#analyze:disabled{opacity:.4;cursor:not-allowed}
 </div>
 </section>
 <section id="results">
-<h2>Ergebnisse</h2>
+<h2 id="lbl-results"></h2>
 <div id="signal-area" style="text-align:center;margin-bottom:1.5rem"></div>
 <div id="decision-flow" class="decision-flow" style="display:none"></div>
 </section>
 <footer style="text-align:center;padding:2rem 0;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border)">
-TradingAgents Research Tool — keine Finanzberatung
+<span id="footer-text"></span>
 </footer>
 </div>
+<script src="/translations.js"></script>
 <script>
-const sigLabels={'Buy':'Kaufen','Overweight':'Übergewichten','Hold':'Halten','Underweight':'Untergewichten','Sell':'Verkaufen'};
-const repLabels={'market_report':'Market Analyst','sentiment_report':'Sentiment Analyst','news_report':'News Analyst','fundamentals_report':'Fundamentals Analyst','final_trade_decision':'Portfolio Manager Entscheidung'};
+// Apply translations
+document.getElementById('lbl-ticker').textContent = t.ticker;
+document.getElementById('lbl-date').textContent = t.date;
+document.getElementById('analyze').textContent = t.analyze;
+document.getElementById('lbl-analysts').textContent = t.analysts;
+document.getElementById('cb-market').textContent = t.cb_market;
+document.getElementById('cb-social').textContent = t.cb_social;
+document.getElementById('cb-news').textContent = t.cb_news;
+document.getElementById('cb-fundamentals').textContent = t.cb_fundamentals;
+document.getElementById('lbl-results').textContent = t.results;
+document.getElementById('footer-text').textContent = t.footer;
+document.documentElement.lang = LANG;
+
+const sigLabels = {Buy:t.sig_buy,Overweight:t.sig_overweight,Hold:t.sig_hold,Underweight:t.sig_underweight,Sell:t.sig_sell};
+const repLabels = {market_report:t.rep_market,sentiment_report:t.rep_sentiment,news_report:t.rep_news,fundamentals_report:t.rep_fundamentals};
+
 async function runAnalysis(){
 const btn=document.getElementById('analyze'),st=document.getElementById('status'),pr=document.getElementById('progress'),res=document.getElementById('results');
 const ticker=document.getElementById('ticker').value.trim(),date=document.getElementById('date').value;
 const analysts=[];
 document.querySelectorAll('.checkbox-group input:checked').forEach(c=>analysts.push(c.value));
-if(!ticker||analysts.length===0){showStatus('Bitte Ticker und Analysten w.','error');return}
+if(!ticker||analysts.length===0){showStatus(t.validate,'error');return}
 btn.disabled=true;res.style.display='none';pr.style.display='block';
 pr.querySelector('.progress-bar-fill').style.animation='none';void pr.querySelector('.progress-bar-fill').offsetWidth;
 pr.querySelector('.progress-bar-fill').style.animation='progress 60s linear';
-showStatus('Analysiere '+ticker+'... (2-5 Min)','info');
-const t=Date.now();
+showStatus(t.analyzing+' '+ticker+'...','info');
+const t_start=Date.now();
 try{const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticker,date,analysts})});
 const d=await r.json();pr.style.display='none';
-if(d.success){const e=((Date.now()-t)/1000).toFixed(0)+'s';showStatus('Done ('+e+')','success');displayResults(d)}
-else showStatus('Fehler: '+d.error,'error')}
-catch(e){pr.style.display='none';showStatus('Netzwerk: '+e.message,'error')}
+if(d.success){const elapsed=((Date.now()-t_start)/1000).toFixed(0)+'s';showStatus(t.done+' ('+elapsed+')','success');displayResults(d)}
+else showStatus(t.error+': '+d.error,'error')}
+catch(e){pr.style.display='none';showStatus(t.network+': '+e.message,'error')}
 btn.disabled=false}
+
 function displayResults(d){
 const res=document.getElementById('results'),sa=document.getElementById('signal-area'),df=document.getElementById('decision-flow');
 if(d.signal){const cl='signal-'+d.signal.toLowerCase(),lb=sigLabels[d.signal]||d.signal;sa.innerHTML='<span class="'+cl+'">'+lb+'</span>'}else sa.innerHTML='';
-// Build collapsible decision flow
 df.innerHTML='';
 let steps=[];let stepIdx=0;
-// Analyst reports as individual collapsible steps
 if(d.reports){Object.entries(d.reports).forEach(([k,v])=>{
 if(v){
 let preview=v.substring(0,80).replace(/\n/g,' ');
 steps.push({icon:'📊',title:repLabels[k]||k,preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(v)+'</div>',id:'step'+stepIdx++});
 }})}
-// Investment debate
 if(d.debate&&d.debate.judge_decision){
 let preview=d.debate.judge_decision.substring(0,60).replace(/\n/g,' ');
-let debHtml='<div class="debate-grid"><div class="debate-side bull-side"><h4>Bull</h4><div class="step-body-inner">'+esc(d.debate.bull_history||'—')+'</div></div><div class="debate-side bear-side"><h4>Bear</h4><div class="step-body-inner">'+esc(d.debate.bear_history||'—')+'</div></div></div>';
-debHtml+='<div class="judge-box"><h4>Research Manager</h4><div class="step-body-inner">'+esc(d.debate.judge_decision)+'</div></div>';
-steps.push({icon:'⚔️',title:'Investitions-Debatte',preview:preview,bodyHtml:debHtml,id:'step'+stepIdx++});
+let debHtml='<div class="debate-grid"><div class="debate-side bull-side"><h4>'+t.bull+'</h4><div class="step-body-inner">'+esc(d.debate.bull_history||'—')+'</div></div><div class="debate-side bear-side"><h4>'+t.bear+'</h4><div class="step-body-inner">'+esc(d.debate.bear_history||'—')+'</div></div></div>';
+debHtml+='<div class="judge-box"><h4>'+t.research_mgr+'</h4><div class="step-body-inner">'+esc(d.debate.judge_decision)+'</div></div>';
+steps.push({icon:'⚔️',title:t.step_debate,preview:preview,bodyHtml:debHtml,id:'step'+stepIdx++});
 }
-// Investment Plan
 if(d.investment_plan){
 let preview=d.investment_plan.substring(0,60).replace(/\n/g,' ');
-steps.push({icon:'📋',title:'Investment Plan',preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(d.investment_plan)+'</div>',id:'step'+stepIdx++});
+steps.push({icon:'📋',title:t.step_investment,preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(d.investment_plan)+'</div>',id:'step'+stepIdx++});
 }
-// Trader Plan
 if(d.trader_plan){
 let preview=d.trader_plan.substring(0,60).replace(/\n/g,' ');
-steps.push({icon:'💼',title:'Trader-Plan',preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(d.trader_plan)+'</div>',id:'step'+stepIdx++});
+steps.push({icon:'💼',title:t.step_trader,preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(d.trader_plan)+'</div>',id:'step'+stepIdx++});
 }
-// Risk Debate
 if(d.risk_debate&&d.risk_debate.judge_decision){
 let preview=d.risk_debate.judge_decision.substring(0,60).replace(/\n/g,' ');
-let riskHtml='<div class="debate-grid"><div class="debate-side aggressive-side"><h4>Aggressiv</h4><div class="step-body-inner">'+esc(d.risk_debate.aggressive_history||'—')+'</div></div><div class="debate-side conservative-side"><h4>Konservativ</h4><div class="step-body-inner">'+esc(d.risk_debate.conservative_history||'—')+'</div></div><div class="debate-side neutral-side"><h4>Neutral</h4><div class="step-body-inner">'+esc(d.risk_debate.neutral_history||'—')+'</div></div></div>';
-riskHtml+='<div class="judge-box"><h4>Risk Manager</h4><div class="step-body-inner">'+esc(d.risk_debate.judge_decision)+'</div></div>';
-steps.push({icon:'🛡️',title:'Risiko-Debatte',preview:preview,bodyHtml:riskHtml,id:'step'+stepIdx++});
+let riskHtml='<div class="debate-grid"><div class="debate-side aggressive-side"><h4>'+t.aggressive+'</h4><div class="step-body-inner">'+esc(d.risk_debate.aggressive_history||'—')+'</div></div><div class="debate-side conservative-side"><h4>'+t.conservative+'</h4><div class="step-body-inner">'+esc(d.risk_debate.conservative_history||'—')+'</div></div><div class="debate-side neutral-side"><h4>'+t.neutral+'</h4><div class="step-body-inner">'+esc(d.risk_debate.neutral_history||'—')+'</div></div></div>';
+riskHtml+='<div class="judge-box"><h4>'+t.risk_mgr+'</h4><div class="step-body-inner">'+esc(d.risk_debate.judge_decision)+'</div></div>';
+steps.push({icon:'🛡️',title:t.step_risk,preview:preview,bodyHtml:riskHtml,id:'step'+stepIdx++});
 }
-// Final decision — always open
 if(d.decision&&d.decision!=='Analysis completed'){
 let preview=d.decision.substring(0,60).replace(/\n/g,' ');
-steps.push({icon:'✅',title:'Finale Entscheidung',preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(d.decision)+'</div>',id:'step'+stepIdx++,alwaysOpen:true});
+steps.push({icon:'✅',title:t.step_final,preview:preview,bodyHtml:'<div class="step-body-inner">'+esc(d.decision)+'</div>',id:'step'+stepIdx++,alwaysOpen:true});
 }
 if(steps.length>0){
 steps.forEach((s)=>{
@@ -499,13 +636,13 @@ df.innerHTML+='<div class="decision-step'+openClass+'" onclick="this.classList.t
 df.style.display='flex';
 }else{df.style.display='none'}
 res.style.display='block';res.scrollIntoView({behavior:'smooth'})}
-function mk(k,c,s=false){const id='r'+k.replace(/[^a-zA-Z]/g,'');return'<div class="result-section"><div class="result-header'+(s?' open':'')+'" onclick="tog(\''+id+'\')"><h3>'+repLabels[k]||k+'</h3><span>▼</span></div><div class="result-body'+(s?' open':'')+'" id="'+id+'"><pre>'+esc(c)+'</pre></div></div>'}
-function tog(i){const b=document.getElementById(i);b.classList.toggle('open');b.previousElementSibling.classList.toggle('open')}
-function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
-function showStatus(m,t){const e=document.getElementById('status');e.className='status-msg '+t;e.innerHTML=m;e.style.display='block'}
+
+function esc(x){const d=document.createElement('div');d.textContent=x;return d.innerHTML}
+function showStatus(m,ty){const e=document.getElementById('status');e.className='status-msg '+ty;e.innerHTML=m;e.style.display='block'}
+
 (async()=>{try{const r=await fetch('/api/status');const d=await r.json();
 document.getElementById('ticker').value=d.ticker||'AAPL';
-const b=document.getElementById('status-badge');b.innerHTML=d.configured?'✅ '+d.provider+'/'+d.model:'⚠️ Kein API Key'}catch(e){document.getElementById('status-badge').innerHTML='❌'}})();
+const b=document.getElementById('status-badge');b.innerHTML=d.configured?'✅ '+d.provider+'/'+d.model:'⚠️ '+t.no_api}catch(e){document.getElementById('status-badge').innerHTML='❌'}})();
 </script>
 </body>
 </html>
@@ -542,5 +679,5 @@ touch /tmp/.tradingagents_installed
 echo "✅ All dependencies ready"
 
 echo "🚀 Starting server on :8080"
-cd /tmp
+cd /tmp/server
 exec python3 -m uvicorn server:app --host 0.0.0.0 --port 8080
