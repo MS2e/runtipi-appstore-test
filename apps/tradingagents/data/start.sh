@@ -236,13 +236,27 @@ async def analyze(req: AnalyzeRequest):
         )
     except Exception as e:
         err_str = str(e)
-        # Catch Cloudflare 524 timeout specifically
-        if "524" in err_str or "timeout" in err_str.lower() or "connection" in err_str.lower():
-            log.error(f"API timeout for {req.ticker}: {e}")
+        # Catch SDK-level 5xx errors (provider or proxy failure)
+        failed_code = next((c for c in ["502", "503", "504", "524"] if c in err_str), None)
+        if failed_code:
+            log.error(f"API returned {failed_code} for {req.ticker}: {err_str[:200]}")
             return AnalyzeResponse(
                 success=False, ticker=req.ticker,
-                error="API-Timeout (524). Die Analyse dauert zu lange — Cloudflare bricht nach 100s ab. "
-                      "Lösung: Wähle weniger Analysten (nur 'market') oder nutze einen schnelleren LLM.",
+                error=f"API-Fehler ({failed_code}). Provider temporär nicht erreichbar — bitte später erneut versuchen.",
+            )
+        # Catch Pydantic validation failures (SDK returned malformed response)
+        if "validation failed" in err_str.lower() or "Response validation" in err_str:
+            log.error(f"SDK returned malformed response for {req.ticker}: {err_str[:200]}")
+            return AnalyzeResponse(
+                success=False, ticker=req.ticker,
+                error="API hat eine fehlerhafte Antwort gesendet. Provider-Seite hat eventuell einen internen Fehler — bitte später erneut versuchen.",
+            )
+        # Catch connection reset / network errors
+        if "connection" in err_str.lower() or "reset" in err_str.lower():
+            log.error(f"Connection error for {req.ticker}: {err_str[:200]}")
+            return AnalyzeResponse(
+                success=False, ticker=req.ticker,
+                error="Verbindung zum LLM-Provider ist abgebrochen. Prüfe Netzwerk oder Proxy-Konfiguration — bitte erneut versuchen.",
             )
         log.error(f"Analysis failed for {req.ticker}: {e}", exc_info=True)
         return AnalyzeResponse(success=False, ticker=req.ticker, error=f"Analysis failed: {err_str[:500]}")
