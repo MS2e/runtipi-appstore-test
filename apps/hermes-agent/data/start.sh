@@ -37,5 +37,9 @@ if ! kill -0 $HERMES_PID 2>/dev/null; then
 fi
 
 # Start web terminal as MAIN interface on port 9119
-echo "🌐 Web Terminal → http://<ip>:9119"
-exec "$TTYD_BIN" -p 9119 -W -d -c "hermes@hermes-agent:~$ " bash
+# -W: enable websocket protocol
+# -p: port (9119 for Runtipi proxy)
+# -T: token disabled (open terminal — set password in startup if needed)
+# -c: custom prompt
+echo "🌐 Web Terminal → http://<ip>:9119 (Runtipi proxied)"
+exec "$TTYD_BIN" -W -T -p 9119 -c "hermes@hermes-agent:~$ " bash
