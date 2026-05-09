@@ -13,9 +13,9 @@ if [ ! -f "$TTYD_BIN" ]; then
     echo "📥 Downloading ttyd..."
     ARCH=$(uname -m)
     if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-        TTYD_URL="https://github.com/tsl0922/ttyd/releases/download/1.8.0/ttyd.linux.arm64"
+        TTYD_URL="https://github.com/tsl0922/ttyd/releases/download/1.8.0/ttyd.linux-arm64"
     else
-        TTYD_URL="https://github.com/tsl0922/ttyd/releases/download/1.8.0/ttyd.linux.amd64"
+        TTYD_URL="https://github.com/tsl0922/ttyd/releases/download/1.8.0/ttyd.linux-amd64"
     fi
     echo "   URL: $TTYD_URL"
     echo "   Arch: $ARCH"
