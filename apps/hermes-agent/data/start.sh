@@ -51,4 +51,4 @@ fi
 # Start web terminal as MAIN interface on port 9119
 echo "🌐 Web Terminal → http://<ip>:9119"
 echo "   Binary: $TTYD_BIN ($(du -h "$TTYD_BIN" | cut -f1))"
-exec "$TTYD_BIN" -W -T -p 9119 -c "hermes@hermes-agent:~$ " bash
+exec "$TTYD_BIN" -W -T -p 9119 -c bash
