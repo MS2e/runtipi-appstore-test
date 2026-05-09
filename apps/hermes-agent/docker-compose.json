@@ -4,20 +4,9 @@
     {
       "name": "hermes-agent",
       "image": "nousresearch/hermes-agent:latest",
-      "isMain": false,
+      "isMain": true,
+      "internalPort": 9119,
       "command": ["gateway", "run"],
-      "ports": [
-        {
-          "internalPort": 8642,
-          "externalPort": 8642,
-          "protocol": "tcp"
-        },
-        {
-          "internalPort": 9119,
-          "externalPort": 9119,
-          "protocol": "tcp"
-        }
-      ],
       "volumes": [
         {
           "hostPath": "${APP_DATA_DIR}/data",
