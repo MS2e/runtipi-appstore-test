@@ -100,6 +100,15 @@ By default, the **built-in web dashboard** is enabled and accessible at:
 - **URL**: `http://your-server-ip:9119`
 - Manage AI chat sessions, monitor usage, configure platforms, and manage skills
 
+### 🌐 Web Terminal (ttyd)
+
+Ein **vollständiges Web-Terminal** mit Bash-Shell — arbeite direkt im Container:
+
+- **URL**: `http://deine-server-ip:9200`
+- Volle Shell-Zugriff: `docker ps`, `ls`, `cat`, `hermes gateway status`
+- Aktiviert alle Hermes-Daten (Sessions, Skills, Config) über `/opt/data`
+- Kein SSH nötig — alles über den Browser
+
 ### Option 1: Cloud APIs (Easiest)
 1. Get an OpenRouter API key at https://openrouter.ai/keys
 2. Enter it in the RunTipi configuration

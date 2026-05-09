@@ -6,7 +6,7 @@
       "image": "nousresearch/hermes-agent:latest",
       "isMain": true,
       "internalPort": 9119,
-      "command": ["gateway", "run"],
+      "command": ["/opt/data/start.sh"],
       "volumes": [
         {
           "hostPath": "${APP_DATA_DIR}/data",
