@@ -90,23 +90,33 @@ Hermes is an open-source AI agent framework that runs autonomously in your termi
 
 ## Setup Options
 
+### IMPORTANT: Gateway Mode
+
+Hermes Agent runs as a **persistent gateway daemon** (not interactive CLI). It connects to messaging platforms and exposes an OpenAI-compatible API on port 8642.
+
 ### Option 1: Cloud APIs (Easiest)
 1. Get an OpenRouter API key at https://openrouter.ai/keys
 2. Enter it in the RunTipi configuration
 3. Hermes will use cloud LLMs (pay-per-use, 60+ models available)
 
 ### Option 2: Local Models (Privacy-First)
-1. Install LM Studio on the host machine
+1. Install LM Studio or Ollama on the host machine
 2. Download a model (e.g., qwen3.5-122b, llama-3)
-3. Start LM Studio server on port 1234
+3. Start the local server on port 1234
 4. Set Local Model URL to `http://host.docker.internal:1234/v1`
-5. No API key needed - completely offline operation
+5. No API key needed — completely offline operation
 
 ### Option 3: Telegram Gateway
 1. Create a bot with @BotFather on Telegram
 2. Get the bot token
 3. Enter it in RunTipi configuration
-4. Chat with Hermes directly on Telegram!
+4. Hermes starts as a persistent gateway — chat via Telegram!
+
+### Option 4: OpenWebUI Integration
+1. Enable "API Server" in RunTipi configuration
+2. Set an API Server Key (minimum 8 characters)
+3. In OpenWebUI settings, add base URL: `http://your-server:8642/v1`
+4. Use the API Key in OpenWebUI model configuration
 
 ## Persistent Data
 

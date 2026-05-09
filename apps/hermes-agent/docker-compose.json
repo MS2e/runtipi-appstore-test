@@ -4,14 +4,52 @@
     {
       "name": "hermes-agent",
       "image": "nousresearch/hermes-agent:latest",
-      "isMain": true,
-      "internalPort": 8080,
+      "isMain": false,
+      "command": ["gateway", "run"],
+      "ports": [
+        {
+          "internalPort": 8642,
+          "externalPort": 8642,
+          "protocol": "tcp"
+        }
+      ],
       "volumes": [
         {
           "hostPath": "${APP_DATA_DIR}/data",
           "containerPath": "/opt/data"
         }
-      ]
+      ],
+      "environment": [
+        {
+          "key": "OPENROUTER_API_KEY",
+          "value": "${OPENROUTER_API_KEY}"
+        },
+        {
+          "key": "TELEGRAM_BOT_TOKEN",
+          "value": "${TELEGRAM_BOT_TOKEN}"
+        },
+        {
+          "key": "DEFAULT_MODEL",
+          "value": "${DEFAULT_MODEL}"
+        },
+        {
+          "key": "LOCAL_MODEL_URL",
+          "value": "${LOCAL_MODEL_URL}"
+        },
+        {
+          "key": "API_SERVER_ENABLED",
+          "value": "${API_SERVER_ENABLED}"
+        },
+        {
+          "key": "API_SERVER_HOST",
+          "value": "0.0.0.0"
+        },
+        {
+          "key": "API_SERVER_PORT",
+          "value": "${API_SERVER_PORT}"
+        }
+      ],
+      "restart": "unless-stopped"
     }
   ]
 }
