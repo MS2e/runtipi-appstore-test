@@ -11,6 +11,11 @@
           "internalPort": 8642,
           "externalPort": 8642,
           "protocol": "tcp"
+        },
+        {
+          "internalPort": 9119,
+          "externalPort": 9119,
+          "protocol": "tcp"
         }
       ],
       "volumes": [
@@ -47,6 +52,10 @@
         {
           "key": "API_SERVER_PORT",
           "value": "${API_SERVER_PORT}"
+        },
+        {
+          "key": "HERMES_DASHBOARD",
+          "value": "${HERMES_DASHBOARD}"
         }
       ],
       "restart": "unless-stopped"

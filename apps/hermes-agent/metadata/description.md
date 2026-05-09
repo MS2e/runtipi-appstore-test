@@ -94,6 +94,12 @@ Hermes is an open-source AI agent framework that runs autonomously in your termi
 
 Hermes Agent runs as a **persistent gateway daemon** (not interactive CLI). It connects to messaging platforms and exposes an OpenAI-compatible API on port 8642.
 
+### 🖥️ Web Dashboard
+
+By default, the **built-in web dashboard** is enabled and accessible at:
+- **URL**: `http://your-server-ip:9119`
+- Manage AI chat sessions, monitor usage, configure platforms, and manage skills
+
 ### Option 1: Cloud APIs (Easiest)
 1. Get an OpenRouter API key at https://openrouter.ai/keys
 2. Enter it in the RunTipi configuration
