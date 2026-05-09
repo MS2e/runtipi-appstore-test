@@ -7,7 +7,7 @@ echo "🔧 Setup: Hermes Agent + Web Terminal..."
 mkdir -p /opt/data
 chown -R hermes:hermes /opt/data 2>/dev/null || true
 
-# Download ttyd if not present
+# Download ttyd if not present (use curl — available in base image)
 TTYD_BIN="/usr/local/bin/ttyd"
 if [ ! -f "$TTYD_BIN" ]; then
     echo "📥 Downloading ttyd..."
@@ -17,7 +17,7 @@ if [ ! -f "$TTYD_BIN" ]; then
     else
         TTYD_URL="https://github.com/tsl0922/ttyd/releases/download/1.8.0/ttyd.linux.amd64"
     fi
-    wget -q -O "$TTYD_BIN" "$TTYD_URL" && chmod +x "$TTYD_BIN" || {
+    curl -sL -o "$TTYD_BIN" "$TTYD_URL" && chmod +x "$TTYD_BIN" || {
         echo "⚠️  ttyd download failed — starting Hermes only"
         exec hermes gateway run
     }
@@ -37,9 +37,9 @@ if ! kill -0 $HERMES_PID 2>/dev/null; then
 fi
 
 # Start web terminal as MAIN interface on port 9119
-# -W: enable websocket protocol
-# -p: port (9119 for Runtipi proxy)
-# -T: token disabled (open terminal — set password in startup if needed)
-# -c: custom prompt
-echo "🌐 Web Terminal → http://<ip>:9119 (Runtipi proxied)"
+# -W: enable websocket protocol (required for Runtipi proxy)
+# -T: no authentication (open terminal)
+# -p: port 9119 (Runtipi nginx proxy)
+# -c: custom prompt string
+echo "🌐 Web Terminal → http://<ip>:9119"
 exec "$TTYD_BIN" -W -T -p 9119 -c "hermes@hermes-agent:~$ " bash
