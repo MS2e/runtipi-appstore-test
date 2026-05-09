@@ -7,8 +7,10 @@ echo "🔧 Setup: Hermes Agent + Web Terminal..."
 mkdir -p /opt/data
 chown -R hermes:hermes /opt/data 2>/dev/null || true
 
+# ttyd binary location — use /opt/data (persistent, always writable)
+TTYD_BIN="/opt/data/ttyd"
+
 # Download ttyd if not present
-TTYD_BIN="/usr/local/bin/ttyd"
 if [ ! -f "$TTYD_BIN" ]; then
     echo "📥 Downloading ttyd..."
     ARCH=$(uname -m)
@@ -20,20 +22,11 @@ if [ ! -f "$TTYD_BIN" ]; then
     echo "   URL: $TTYD_URL"
     echo "   Arch: $ARCH"
 
-    # Download to /tmp first (always writable), then move to target
     TMP_TTYD="/tmp/ttyd-$$"
     curl -fsSL -o "$TMP_TTYD" "$TTYD_URL" 2>&1 && chmod +x "$TMP_TTYD" && {
         echo "   Downloaded ($(du -h "$TMP_TTYD" | cut -f1))"
-        # Try to copy to /usr/local/bin (might need root)
-        if cp "$TMP_TTYD" "$TTYD_BIN" 2>/dev/null || sudo cp "$TMP_TTYD" "$TTYD_BIN" 2>/dev/null; then
-            chmod +x "$TTYD_BIN"
-            echo "✅ ttyd installed at $TTYD_BIN"
-        else
-            # Fallback: use it from /tmp
-            TTYD_BIN="$TMP_TTYD"
-            echo "⚠️  Can't write to /usr/local/bin, using from /tmp"
-        fi
-        rm -f "$TMP_TTYD"
+        mv "$TMP_TTYD" "$TTYD_BIN"
+        echo "✅ ttyd installed at $TTYD_BIN"
     } || {
         echo "❌ ttyd download FAILED"
         echo "Starting Hermes Gateway only (no terminal)..."
@@ -57,5 +50,5 @@ fi
 
 # Start web terminal as MAIN interface on port 9119
 echo "🌐 Web Terminal → http://<ip>:9119"
-echo "   Binary: $TTYD_BIN ($(du -h "$TTYD_BIN" 2>/dev/null | cut -f1))"
+echo "   Binary: $TTYD_BIN ($(du -h "$TTYD_BIN" | cut -f1))"
 exec "$TTYD_BIN" -W -T -p 9119 -c "hermes@hermes-agent:~$ " bash
