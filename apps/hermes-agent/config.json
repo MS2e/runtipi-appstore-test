@@ -10,7 +10,7 @@
   "tipi_version": 2,
   "version": "v1.0.0",
   "source": "https://github.com/NousResearch/hermes-agent",
-  "exposable": false,
+  "exposable": true,
   "supported_architectures": ["arm64", "amd64"],
   "created_at": 1745082405284,
   "updated_at": 1745674974072,
