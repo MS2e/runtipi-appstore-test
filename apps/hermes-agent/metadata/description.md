@@ -1,8 +1,8 @@
 # Hermes Agent
 
-**Autonomous AI agent with persistent memory, multi-platform gateway, and self-improving skills system**
+**CLI-first AI agent — Web Terminal + Docker container with persistent memory, multi-platform gateway, and self-improving skills**
 
-Hermes is an open-source AI agent framework that runs autonomously in your terminal or as a service. It features persistent memory across sessions, a multi-platform gateway (Telegram, Discord, WhatsApp, Slack, etc.), and a self-improving skills system. Supports both cloud APIs (OpenRouter) and local LLMs (LM Studio, llama.cpp) for privacy-first operation.
+Hermes is an open-source AI agent framework. The main interface is a **Web Terminal** in your browser — a full Bash shell inside the container. Optionally enable the **Dashboard UI** for chat-based interaction.
 
 ## Key Features
 
@@ -44,104 +44,59 @@ Hermes is an open-source AI agent framework that runs autonomously in your termi
 - Self-improving: Agent can create new skills from experience
 - Platform-aware: Skills adapt to Telegram, Discord, CLI context
 
-## Use Cases
+## Interfaces
 
-### Development & DevOps
-- Code review and debugging assistance
-- Git workflow management (branches, PRs, commits)
-- GitHub repository operations
-- CI/CD pipeline management
+### 🖥️ Web Terminal (Main) — Always Active
 
-### Research & Data Science
-- Academic paper discovery (arXiv integration)
-- Blog monitoring and RSS feed tracking
-- Data analysis with Jupyter notebooks
-- Web scraping and data extraction
+A **full Bash terminal** in your browser via [ttyd](https://github.com/tsl0922/ttyd):
 
-### Productivity & Automation
-- Email management via IMAP/SMTP
-- Calendar operations (Google Calendar)
-- Document creation and editing
-- Smart home automation (Home Assistant)
+- **URL**: `http://your-server-ip:9119`
+- Full shell access: `docker ps`, `ls`, `cat`, `hermes gateway status`
+- All Hermes data accessible via `/opt/data`
+- No SSH needed — everything from the browser
 
-### Creative Projects
-- ASCII art generation with pyfiglet/cowsay
-- Music generation (Suno, AudioCraft)
-- Image generation (Pollinations, Stable Diffusion)
-- Video creation with Manim
+### 📱 Dashboard (Optional)
 
-## Configuration via RunTipi
+The built-in **chat-based Dashboard UI** for managing sessions, skills, and configuration:
+
+- Enable via Runtipi config → "Enable Dashboard (Optional Web UI)"
+- **URL**: `http://your-server-ip:9120` (when enabled)
+- Chat with Hermes, monitor usage, manage skills
+
+### 📡 OpenAI API (Optional)
+
+Exposes an OpenAI-compatible API for external tools (OpenWebUI, etc.):
+
+- Enable via Runtipi config → "Enable API Server"
+- **URL**: `http://your-server-ip:8642/v1` (when enabled)
+
+## Setup Options
 
 ### Required Fields (Optional - Choose Your Setup)
 
 | Field | Description |
 |-------|-------------|
-| **OpenRouter API Key** | Get at https://openrouter.ai/keys - gives access to 60+ models from multiple providers |
-| **Telegram Bot Token** | Get from @BotFather - enables Telegram gateway for messaging interface |
+| **OpenRouter API Key** | Get at https://openrouter.ai/keys - access to 60+ models |
+| **Telegram Bot Token** | Get from @BotFather - enables Telegram gateway |
 
 ### Optional Configuration
 
 | Field | Default | Description |
 |-------|---------|-------------|
-| **Default Model** | `anthropic/claude-sonnet-4` | Default LLM model for cloud APIs |
-| **Local Model URL** | - | URL for local LLM server (e.g. `http://host.docker.internal:1234/v1` for LM Studio) |
-| **Enable API Server** | Disabled | Enable web API server for OpenWebUI or custom integrations |
-| **API Server Port** | `8080` | Port for the API server |
+| **Default Model** | `anthropic/claude-sonnet-4` | LLM model for cloud APIs |
+| **Local Model URL** | - | Local LLM server (e.g. `http://host.docker.internal:1234/v1`) |
+| **Enable Dashboard** | Disabled | Chat UI at port 9120 |
+| **Enable API Server** | Disabled | OpenAI-compatible API for external tools |
+| **API Server Key** | - | Minimum 8 chars when API Server is on |
+| **API Server Port** | `8642` | Port for the API server |
 
-## Setup Options
+## Access Summary
 
-### IMPORTANT: Gateway Mode
-
-Hermes Agent runs as a **persistent gateway daemon** (not interactive CLI). It connects to messaging platforms and exposes an OpenAI-compatible API on port 8642.
-
-### 🖥️ Web Dashboard
-
-By default, the **built-in web dashboard** is enabled and accessible at:
-- **URL**: `http://your-server-ip:9119`
-- Manage AI chat sessions, monitor usage, configure platforms, and manage skills
-
-### 🌐 Web Terminal (ttyd)
-
-Ein **vollständiges Web-Terminal** mit Bash-Shell — arbeite direkt im Container:
-
-- **URL**: `http://deine-server-ip:9200`
-- Volle Shell-Zugriff: `docker ps`, `ls`, `cat`, `hermes gateway status`
-- Aktiviert alle Hermes-Daten (Sessions, Skills, Config) über `/opt/data`
-- Kein SSH nötig — alles über den Browser
-
-### Option 1: Cloud APIs (Easiest)
-1. Get an OpenRouter API key at https://openrouter.ai/keys
-2. Enter it in the RunTipi configuration
-3. Hermes will use cloud LLMs (pay-per-use, 60+ models available)
-
-### Option 2: Local Models (Privacy-First)
-1. Install LM Studio or Ollama on the host machine
-2. Download a model (e.g., qwen3.5-122b, llama-3)
-3. Start the local server on port 1234
-4. Set Local Model URL to `http://host.docker.internal:1234/v1`
-5. No API key needed — completely offline operation
-
-### Option 3: Telegram Gateway
-1. Create a bot with @BotFather on Telegram
-2. Get the bot token
-3. Enter it in RunTipi configuration
-4. Hermes starts as a persistent gateway — chat via Telegram!
-
-### Option 4: OpenWebUI Integration
-1. Enable "API Server" in RunTipi configuration
-2. Set an API Server Key (minimum 8 characters)
-3. In OpenWebUI settings, add base URL: `http://your-server:8642/v1`
-4. Use the API Key in OpenWebUI model configuration
-
-## Persistent Data
-
-Hermes stores data in a named volume (`hermes-data`):
-- `~/.hermes/config.yaml` - User configuration
-- `~/.hermes/sessions/` - Conversation history
-- `~/.hermes/skills/` - Installed skills
-- `~/.hermes/memory.db` - Persistent memory database
-
-Data persists across container restarts and updates.
+| Interface | Port | Access |
+|-----------|------|--------|
+| **Web Terminal (ttyd)** | 9119 | `http://<ip>:9119` — **always active** |
+| Dashboard UI | 9120 | `http://<ip>:9120` — optional |
+| OpenAI API | 8642 | `http://<ip>:8642/v1` — optional |
 
 ## Source & Documentation
 
@@ -153,7 +108,6 @@ Data persists across container restarts and updates.
 This app uses the official image: `nousresearch/hermes-agent:latest`
 - **Pulls**: 286,000+
 - **Architectures**: amd64, arm64
-- **Last Updated**: Regular updates
 
 ## License
 

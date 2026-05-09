@@ -2,13 +2,13 @@
   "name": "Hermes Agent",
   "id": "hermes-agent",
   "available": true,
-  "short_desc": "Autonomous AI agent - Telegram/Discord gateway, local models, self-improving skills",
+  "short_desc": "CLI-first AI agent: Web Terminal + Docker container. Gateway (Telegram/Discord), local models, persistent memory, self-improving skills",
   "author": "Nous Research",
   "port": 9119,
   "categories": ["ai", "automation"],
-  "description": "Autonomous AI agent running as a persistent gateway service. Features persistent memory, multi-platform messaging (Telegram, Discord, WhatsApp, Slack), and a self-improving skills system. Supports cloud APIs (OpenRouter, Anthropic, Google) and local LLMs (LM Studio, Ollama) for privacy-first operation. Accessible via messaging platforms, CLI, and optional OpenAI-compatible API server on port 8642.",
+  "description": "CLI-first AI agent framework with persistent memory, multi-platform gateway, and self-improving skills. The main interface is a **Web Terminal** (ttyd) running in your browser — full Bash shell access to the container. Optionally enable the built-in Dashboard UI for chat-based interaction.",
   "tipi_version": 2,
-  "version": "v1.0.0",
+  "version": "v2.0.0",
   "source": "https://github.com/NousResearch/hermes-agent",
   "exposable": true,
   "supported_architectures": ["arm64", "amd64"],
@@ -47,20 +47,20 @@
       "hint": "URL for local LLM server (e.g. http://host.docker.internal:1234/v1 for LM Studio)"
     },
     {
+      "label": "Enable Dashboard (Optional Web UI)",
+      "env_variable": "HERMES_DASHBOARD",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "hint": "Add chat-based Dashboard UI at port 9120 (CLI terminal is always active on port 9119)"
+    },
+    {
       "label": "Enable API Server",
       "env_variable": "API_SERVER_ENABLED",
       "type": "boolean",
       "required": false,
       "default": false,
-      "hint": "Enable web API server for OpenWebUI integration (requires API Server Key)"
-    },
-    {
-      "label": "Enable Dashboard (Web UI)",
-      "env_variable": "HERMES_DASHBOARD",
-      "type": "boolean",
-      "required": false,
-      "default": true,
-      "hint": "Enable the built-in web dashboard accessible at port 9119"
+      "hint": "Enable OpenAI-compatible API server for OpenWebUI integration (requires API Server Key)"
     },
     {
       "label": "API Server Key",
@@ -75,7 +75,7 @@
       "env_variable": "API_SERVER_PORT",
       "type": "text",
       "required": false,
-      "default": "8080",
+      "default": "8642",
       "hint": "Port for the API server (requires Enable API Server)"
     }
   ]

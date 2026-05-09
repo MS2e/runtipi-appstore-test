@@ -36,6 +36,6 @@ if ! kill -0 $HERMES_PID 2>/dev/null; then
     echo "⚠️  Hermes exited early — ttyd will still work"
 fi
 
-# Start web terminal on port 9200
-echo "🌐 Web Terminal → http://<ip>:9200"
-exec "$TTYD_BIN" -p 9200 -W -d -c "hermes@hermes-agent:~$ " bash
+# Start web terminal as MAIN interface on port 9119
+echo "🌐 Web Terminal → http://<ip>:9119"
+exec "$TTYD_BIN" -p 9119 -W -d -c "hermes@hermes-agent:~$ " bash
