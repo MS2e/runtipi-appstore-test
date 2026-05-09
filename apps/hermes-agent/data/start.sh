@@ -19,21 +19,23 @@ if [ ! -f "$TTYD_BIN" ]; then
     fi
     echo "   URL: $TTYD_URL"
     echo "   Arch: $ARCH"
-    curl -fsSL -o "$TTYD_BIN" "$TTYD_URL" 2>&1 && chmod +x "$TTYD_BIN" && {
-        echo "✅ ttyd downloaded ($(du -h "$TTYD_BIN" | cut -f1))"
+
+    # Download to /tmp first (always writable), then move to target
+    TMP_TTYD="/tmp/ttyd-$$"
+    curl -fsSL -o "$TMP_TTYD" "$TTYD_URL" 2>&1 && chmod +x "$TMP_TTYD" && {
+        echo "   Downloaded ($(du -h "$TMP_TTYD" | cut -f1))"
+        # Try to copy to /usr/local/bin (might need root)
+        if cp "$TMP_TTYD" "$TTYD_BIN" 2>/dev/null || sudo cp "$TMP_TTYD" "$TTYD_BIN" 2>/dev/null; then
+            chmod +x "$TTYD_BIN"
+            echo "✅ ttyd installed at $TTYD_BIN"
+        else
+            # Fallback: use it from /tmp
+            TTYD_BIN="$TMP_TTYD"
+            echo "⚠️  Can't write to /usr/local/bin, using from /tmp"
+        fi
+        rm -f "$TMP_TTYD"
     } || {
         echo "❌ ttyd download FAILED"
-        echo "   Trying alternative method with wget..."
-        if command -v wget >/dev/null 2>&1; then
-            wget -q -O "$TTYD_BIN" "$TTYD_URL" 2>&1 && chmod +x "$TTYD_BIN" && {
-                echo "✅ ttyd downloaded via wget"
-            } || {
-                echo "❌ wget also failed"
-            }
-        else
-            echo "❌ wget not available either"
-        fi
-        echo ""
         echo "Starting Hermes Gateway only (no terminal)..."
         exec hermes gateway run
     }
@@ -55,6 +57,5 @@ fi
 
 # Start web terminal as MAIN interface on port 9119
 echo "🌐 Web Terminal → http://<ip>:9119"
-echo "   Binary: $TTYD_BIN"
-ls -la "$TTYD_BIN" 2>&1 || echo "   WARNING: ttyd binary missing!"
+echo "   Binary: $TTYD_BIN ($(du -h "$TTYD_BIN" 2>/dev/null | cut -f1))"
 exec "$TTYD_BIN" -W -T -p 9119 -c "hermes@hermes-agent:~$ " bash
