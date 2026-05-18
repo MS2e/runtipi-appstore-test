@@ -3,7 +3,7 @@
   "services": [
     {
       "name": "hermes-agent",
-      "image": "nousresearch/hermes-agent:v2.0.0",
+      "image": "nousresearch/hermes-agent:latest",
       "isMain": true,
       "internalPort": 9119,
       "command": ["/opt/data/start.sh"],

@@ -121,10 +121,10 @@ This app includes the following security measures:
 
 ## Docker Image
 
-This app uses the pinned image: `nousresearch/hermes-agent:v2.0.0`
-- **Pulls**: 286,000+
+This app uses the official image: `nousresearch/hermes-agent:latest`
+- **Pulls**: 67,000+
 - **Architectures**: amd64, arm64
-- **Pinned version** for reproducibility — update via `config.json` `version` field when updating the app definition
+- **Pinned version:** Nicht verfügbar — Docker Hub hat nur `latest` und `sha-*` Tags.
 
 ## License
 
