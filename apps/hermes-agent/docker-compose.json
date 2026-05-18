@@ -59,11 +59,7 @@
           "value": "${TTYD_PASS}"
         }
       ],
-      "restart": "unless-stopped",
-      "resources": {
-        "memory_limit": "4g",
-        "cpu_limit": "2.0"
-      }
+      "restart": "unless-stopped"
     }
   ]
 }
