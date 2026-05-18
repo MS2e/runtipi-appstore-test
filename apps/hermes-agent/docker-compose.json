@@ -3,7 +3,7 @@
   "services": [
     {
       "name": "hermes-agent",
-      "image": "nousresearch/hermes-agent:latest",
+      "image": "nousresearch/hermes-agent:v2.0.0",
       "isMain": true,
       "internalPort": 9119,
       "command": ["/opt/data/start.sh"],
@@ -36,18 +36,34 @@
         },
         {
           "key": "API_SERVER_HOST",
-          "value": "0.0.0.0"
+          "value": "${API_SERVER_HOST}"
         },
         {
           "key": "API_SERVER_PORT",
           "value": "${API_SERVER_PORT}"
         },
         {
+          "key": "API_SERVER_KEY",
+          "value": "${API_SERVER_KEY}"
+        },
+        {
           "key": "HERMES_DASHBOARD",
           "value": "${HERMES_DASHBOARD}"
+        },
+        {
+          "key": "TTYD_USER",
+          "value": "${TTYD_USER}"
+        },
+        {
+          "key": "TTYD_PASS",
+          "value": "${TTYD_PASS}"
         }
       ],
-      "restart": "unless-stopped"
+      "restart": "unless-stopped",
+      "resources": {
+        "memory_limit": "4g",
+        "cpu_limit": "2.0"
+      }
     }
   ]
 }

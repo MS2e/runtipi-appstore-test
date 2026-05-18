@@ -55,6 +55,8 @@ A **full Bash terminal** in your browser via [ttyd](https://github.com/tsl0922/t
 - All Hermes data accessible via `/opt/data`
 - No SSH needed — everything from the browser
 
+> **🔒 Authentication:** Set **Terminal Username** + **Terminal Password** in the app config to enable Basic Auth. Leaving either blank disables terminal authentication — this is a security risk if the app is exposable via the Runtipi frontend.
+
 ### 📱 Dashboard (Optional)
 
 The built-in **chat-based Dashboard UI** for managing sessions, skills, and configuration:
@@ -69,6 +71,8 @@ Exposes an OpenAI-compatible API for external tools (OpenWebUI, etc.):
 
 - Enable via Runtipi config → "Enable API Server"
 - **URL**: `http://your-server-ip:8642/v1` (when enabled)
+- **Authentication:** All requests MUST include the header `Authorization: Bearer <API_SERVER_KEY>`. The key defaults to binding on `127.0.0.1` (loopback only) — the Runtipi nginx proxy forwards requests to it. Never change to `0.0.0.0` unless running outside Runtipi.
+- **Key strength:** Minimum 32 characters. Use `openssl rand -hex 32` to generate a secure key.
 
 ## Setup Options
 
@@ -86,9 +90,12 @@ Exposes an OpenAI-compatible API for external tools (OpenWebUI, etc.):
 | **Default Model** | `anthropic/claude-sonnet-4` | LLM model for cloud APIs |
 | **Local Model URL** | - | Local LLM server (e.g. `http://host.docker.internal:1234/v1`) |
 | **Enable Dashboard** | Disabled | Chat UI at port 9120 |
-| **Enable API Server** | Disabled | OpenAI-compatible API for external tools |
-| **API Server Key** | - | Minimum 8 chars when API Server is on |
-| **API Server Port** | `8642` | Port for the API server |
+|| **Enable API Server** | Disabled | OpenAI-compatible API for external tools |
+|| **API Server Key** | - | Minimum 32 chars when API Server is on |
+|| **API Server Port** | `8642` | Port for the API server |
+|| **API Server Bind Host** | `127.0.0.1` | Only change to `0.0.0.0` if running outside Runtipi |
+|| **Terminal Username** | - | Optional — enables ttyd Basic Auth |
+|| **Terminal Password** | - | Optional — enables ttyd Basic Auth |
 
 ## Access Summary
 
@@ -98,6 +105,15 @@ Exposes an OpenAI-compatible API for external tools (OpenWebUI, etc.):
 | Dashboard UI | 9120 | `http://<ip>:9120` — optional |
 | OpenAI API | 8642 | `http://<ip>:8642/v1` — optional |
 
+## Security
+
+This app includes the following security measures:
+
+- **ttyd Basic Auth:** Set Terminal Username + Password in config to enable HTTP Basic Authentication on the Web Terminal. Without it, anyone on the network can open a full shell.
+- **API Server loopback binding:** Default `127.0.0.1` — the Runtipi nginx proxy handles external access. The API key must be ≥32 chars.
+- **Resource limits:** Container capped at 4 GB RAM and 2 CPU cores to prevent host impact.
+- **Pinned image version:** Uses `v2.0.0` instead of `latest` for reproducible, auditable deployments.
+
 ## Source & Documentation
 
 - **GitHub**: https://github.com/NousResearch/hermes-agent
@@ -105,9 +121,10 @@ Exposes an OpenAI-compatible API for external tools (OpenWebUI, etc.):
 
 ## Docker Image
 
-This app uses the official image: `nousresearch/hermes-agent:latest`
+This app uses the pinned image: `nousresearch/hermes-agent:v2.0.0`
 - **Pulls**: 286,000+
 - **Architectures**: amd64, arm64
+- **Pinned version** for reproducibility — update via `config.json` `version` field when updating the app definition
 
 ## License
 

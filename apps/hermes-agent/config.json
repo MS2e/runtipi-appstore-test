@@ -68,7 +68,7 @@
       "type": "password",
       "required": false,
       "default": "",
-      "hint": "Minimum 8 characters — required when Enable API Server is on (generate: openssl rand -hex 32)"
+      "hint": "Minimum 32 characters for secure API authentication — required when Enable API Server is on (generate: openssl rand -hex 32)"
     },
     {
       "label": "API Server Port",
@@ -77,6 +77,30 @@
       "required": false,
       "default": "8642",
       "hint": "Port for the API server (requires Enable API Server)"
+    },
+    {
+      "label": "API Server Bind Host",
+      "env_variable": "API_SERVER_HOST",
+      "type": "text",
+      "required": false,
+      "default": "127.0.0.1",
+      "hint": "Bind address for API server. Use 127.0.0.1 (default) for Runtipi proxy — only listen on loopback. Change to 0.0.0.0 only if running outside Runtipi."
+    },
+    {
+      "label": "Terminal Username (Auth)",
+      "env_variable": "TTYD_USER",
+      "type": "text",
+      "required": false,
+      "default": "",
+      "hint": "Username for ttyd Web Terminal login. Leave blank to DISABLE terminal authentication (⚠️ security risk if app is exposable)."
+    },
+    {
+      "label": "Terminal Password (Auth)",
+      "env_variable": "TTYD_PASS",
+      "type": "password",
+      "required": false,
+      "default": "",
+      "hint": "Password for ttyd Web Terminal login. Leave blank if no terminal auth desired. Set alongside Terminal Username."
     }
   ]
 }

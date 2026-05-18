@@ -7,6 +7,16 @@ echo "🔧 Setup: Hermes Agent + Web Terminal..."
 mkdir -p /opt/data
 chown -R hermes:hermes /opt/data 2>/dev/null || true
 
+# ttyd authentication — if TTYD_USER/TTYD_PASS are set, enforce Basic Auth
+TTYD_AUTH=""
+if [ -n "${TTYD_USER:-}" ] && [ -n "${TTYD_PASS:-}" ]; then
+    TTYD_AUTH="-a ${TTYD_USER}:${TTYD_PASS}"
+    echo "🔒 ttyd Basic Auth enabled (user: $TTYD_USER)"
+else
+    echo "⚠️  WARNING: ttyd has NO authentication. Anyone with network access can open a shell!"
+    echo "   Set TTYD_USER + TTYD_PASS in Runtipi config to enable Basic Auth."
+fi
+
 # ttyd binary location — use /opt/data (persistent, always writable)
 TTYD_BIN="/opt/data/ttyd"
 
@@ -46,4 +56,4 @@ fi
 # Using '--' separator to cleanly separate ttyd opts from command
 echo "🌐 Web Terminal → http://<ip>:9119"
 echo "   Binary: $TTYD_BIN"
-exec "$TTYD_BIN" -W -p 9119 -- bash
+exec "$TTYD_BIN" -W -p 9119 $TTYD_AUTH -- bash
