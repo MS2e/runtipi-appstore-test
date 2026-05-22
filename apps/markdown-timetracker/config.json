@@ -1,0 +1,25 @@
+{
+  "name": "Markdown TimeTracker",
+  "id": "markdown-timetracker",
+  "available": true,
+  "short_desc": "Lokale Zeiterfassungs-App mit Markdown-Import/Export und interaktiver Statistik",
+  "author": "MS2e & Hermi",
+  "description": "Elegante, serverlose Zeiterfassungs-Anwendung, die komplett lokal im Browser läuft. Zeiterfassung mit Live-Timer, hierarchischem Verlauf (Jahr → Monat → Woche → Tag), interaktivem Balkendiagramm, Markdown-Import/Export und Persistenz via LocalStorage. Kein Backend, keine Cloud, kein Login – 100% datenschutzfreundlich.",
+  "tipi_version": 2,
+  "version": "1.0.0",
+  "source": "https://github.com/MS2e/Markdown-TimeTracker",
+  "port": 8849,
+  "categories": [
+    "utilities",
+    "productivity"
+  ],
+  "exposable": true,
+  "supported_architectures": [
+    "arm64",
+    "amd64"
+  ],
+  "dynamic_config": true,
+  "created_at": 1747896000000,
+  "updated_at": 1747896000000,
+  "form_fields": []
+}
