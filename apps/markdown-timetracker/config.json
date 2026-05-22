@@ -10,8 +10,7 @@
   "source": "https://github.com/MS2e/Markdown-TimeTracker",
   "port": 8849,
   "categories": [
-    "utilities",
-    "productivity"
+    "utilities"
   ],
   "exposable": true,
   "supported_architectures": [
