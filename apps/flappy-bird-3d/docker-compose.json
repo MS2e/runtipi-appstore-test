@@ -3,10 +3,16 @@
   "services": [
     {
       "name": "flappy-bird-3d",
-      "build": ".",
-      "image": "flappy-bird-3d",
+      "image": "nginx:alpine",
       "isMain": true,
       "internalPort": 80,
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/web",
+          "containerPath": "/usr/share/nginx/html",
+          "readOnly": true
+        }
+      ],
       "restart": "unless-stopped"
     }
   ]
