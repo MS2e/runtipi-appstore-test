@@ -1,0 +1,19 @@
+{
+  "name": "flappy-bird-3d",
+  "id": "flappy-bird-3d",
+  "available": true,
+  "short_desc": "Spectacular 3D Flappy Bird clone with Three.js, Bloom post-processing, and particle effects.",
+  "author": "Nous Research",
+  "description": "A spectacular 3D Flappy Bird clone built with Three.js. Features:\n\n🐦 3D bird with smooth gravity/jump physics\n🏗️ Procedurally generated pipes with collision detection\n✨ Unreal Bloom post-processing\n🌈 Chromatic aberration shader\n💫 4 particle systems (jump, score, collision, death)\n🔦 3-point dynamic lighting with soft shadows\n🏙️ Animated cityscape background\n📱 Responsive design (mobile + desktop)\n💾 Local high score persistence\n\nPerfect for a quick browser-based arcade session!",
+  "tipi_version": 2,
+  "version": "1.0.0",
+  "source": "https://github.com/MS2e/runtipi-appstore-test",
+  "port": 80,
+  "categories": ["games"],
+  "exposable": true,
+  "supported_architectures": ["amd64", "arm64"],
+  "dynamic_config": true,
+  "created_at": 1780915200000,
+  "updated_at": 1780915200000,
+  "form_fields": []
+}

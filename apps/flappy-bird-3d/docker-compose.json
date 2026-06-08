@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "services": [
+    {
+      "name": "flappy-bird-3d",
+      "build": ".",
+      "image": "flappy-bird-3d",
+      "isMain": true,
+      "internalPort": 80,
+      "restart": "unless-stopped"
+    }
+  ]
+}

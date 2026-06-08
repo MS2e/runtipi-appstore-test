@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Flappy Bird 3D</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { overflow: hidden; background: #000; font-family: 'Segoe UI', system-ui, sans-serif; }
+    #canvas-container { width: 100vw; height: 100vh; display: block; }
+
+    #ui-layer {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 10;
+    }
+
+    #score {
+      position: absolute; top: clamp(10px, 3vh, 30px); left: 50%; transform: translateX(-50%);
+      font-size: clamp(28px, 6vw, 56px); font-weight: 900; color: #fff;
+      text-shadow: 0 0 10px rgba(255,200,0,0.8), 0 2px 4px rgba(0,0,0,0.5);
+      letter-spacing: 2px; user-select: none;
+    }
+    #score.pop { animation: scorePop 0.3s ease-out; }
+    @keyframes scorePop {
+      0% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.5); color: #ffd700; }
+      100% { transform: translateX(-50%) scale(1); }
+    }
+
+    #high-score {
+      position: absolute; top: clamp(40px, 5vh, 70px); left: 50%; transform: translateX(-50%);
+      font-size: clamp(12px, 2vw, 18px); color: rgba(255,255,255,0.6);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .overlay-screen {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      pointer-events: auto;
+    }
+
+    #start-screen { background: radial-gradient(ellipse at center, rgba(0,0,30,0.7) 0%, rgba(0,0,0,0.9) 100%); }
+
+    #game-over-screen {
+      background: radial-gradient(ellipse at center, rgba(30,0,0,0.7) 0%, rgba(0,0,0,0.95) 100%);
+      display: none;
+    }
+
+    .title {
+      font-size: clamp(36px, 8vw, 80px); font-weight: 900; color: #ffd700;
+      text-shadow: 0 0 20px rgba(255,200,0,0.6), 0 4px 8px rgba(0,0,0,0.8);
+      margin-bottom: clamp(10px, 2vh, 30px);
+    }
+    .subtitle {
+      font-size: clamp(14px, 2.5vw, 24px); color: rgba(255,255,255,0.7);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5); margin-bottom: clamp(20px, 4vh, 40px);
+    }
+
+    .btn {
+      padding: clamp(12px, 2vh, 20px) clamp(30px, 6vw, 60px);
+      font-size: clamp(16px, 3vw, 24px); font-weight: 700;
+      border: none; border-radius: 12px; cursor: pointer;
+      text-transform: uppercase; letter-spacing: 2px;
+      transition: all 0.2s ease; pointer-events: auto;
+    }
+    .btn-play {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #1a0a00; box-shadow: 0 4px 15px rgba(255,165,0,0.5);
+    }
+    .btn-play:hover { transform: scale(1.05); box-shadow: 0 6px 25px rgba(255,165,0,0.7); }
+    .btn-restart {
+      background: linear-gradient(135deg, #ff4444, #cc0000);
+      color: #fff; box-shadow: 0 4px 15px rgba(255,0,0,0.4);
+    }
+    .btn-restart:hover { transform: scale(1.05); box-shadow: 0 6px 25px rgba(255,0,0,0.6); }
+
+    #final-score {
+      font-size: clamp(20px, 4vw, 40px); color: #fff;
+      text-shadow: 0 0 10px rgba(255,200,0,0.5); margin-bottom: 10px;
+    }
+    #best-score {
+      font-size: clamp(14px, 2vw, 20px); color: rgba(255,255,255,0.6);
+    }
+
+    #loading {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: #000; color: #ffd700; font-size: 20px; z-index: 100;
+    }
+    #loading.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading 3D Engine...</div>
+  <div id="canvas-container"></div>
+
+  <div id="ui-layer">
+    <div id="score">0</div>
+    <div id="high-score">Best: 0</div>
+
+    <div id="start-screen" class="overlay-screen">
+      <div class="title">FLAPPY BIRD 3D</div>
+      <div class="subtitle">A Three.js Experience</div>
+      <button class="btn btn-play" id="btn-play">Play</button>
+    </div>
+
+    <div id="game-over-screen" class="overlay-screen">
+      <div class="title">GAME OVER</div>
+      <div id="final-score">Score: 0</div>
+      <div id="best-score">Best: 0</div>
+      <button class="btn btn-restart" id="btn-restart">Restart</button>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
