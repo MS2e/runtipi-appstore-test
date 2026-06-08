@@ -8,15 +8,10 @@
   "tipi_version": 2,
   "version": "1.0.0",
   "source": "https://github.com/MS2e/runtipi-appstore-test",
-  "port": 80,
-  "categories": [
-    "media"
-  ],
+  "port": 8080,
+  "categories": ["media"],
   "exposable": true,
-  "supported_architectures": [
-    "amd64",
-    "arm64"
-  ],
+  "supported_architectures": ["amd64", "arm64"],
   "dynamic_config": true,
   "created_at": 1780915200000,
   "updated_at": 1780915200000,
