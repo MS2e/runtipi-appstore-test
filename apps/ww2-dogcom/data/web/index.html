@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WW2 DOGCOM — Spitfire Dogfight Simulator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      overflow: hidden;
+      background: #000;
+      font-family: 'Courier New', monospace;
+    }
+    canvas { display: block; }
+
+    /* Loading screen */
+    #loading {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: linear-gradient(180deg, #0a0a0a 0%, #1a2a1a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: opacity 1s;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    #loading h1 {
+      font-size: 48px;
+      color: #00ff88;
+      text-shadow: 0 0 20px rgba(0,255,136,0.5);
+      margin-bottom: 10px;
+      letter-spacing: 8px;
+    }
+    #loading h2 {
+      font-size: 18px;
+      color: #668866;
+      margin-bottom: 40px;
+      font-weight: normal;
+    }
+    #loading .subtitle {
+      font-size: 14px;
+      color: #445544;
+      margin-bottom: 30px;
+    }
+    .loader-bar {
+      width: 300px;
+      height: 4px;
+      background: #1a2a1a;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .loader-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00ff88, #00aa55);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    #loading .status {
+      font-size: 12px;
+      color: #445544;
+    }
+
+    /* Crosshair overlay */
+    #crosshair {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px; height: 40px;
+      pointer-events: none;
+      z-index: 102;
+    }
+    #crosshair::before, #crosshair::after {
+      content: '';
+      position: absolute;
+      background: rgba(0, 255, 0, 0.6);
+    }
+    #crosshair::before {
+      top: 50%; left: 0;
+      width: 100%; height: 1px;
+      transform: translateY(-50%);
+    }
+    #crosshair::after {
+      left: 50%; top: 0;
+      width: 1px; height: 100%;
+      transform: translateX(-50%);
+    }
+
+    /* Kill feed */
+    #killfeed {
+      position: fixed;
+      top: 80px; right: 20px;
+      z-index: 150;
+      pointer-events: none;
+      font-family: 'Courier New', monospace;
+    }
+    .kill-entry {
+      background: rgba(0,0,0,0.6);
+      color: #ff6644;
+      padding: 5px 12px;
+      margin-bottom: 4px;
+      border-radius: 3px;
+      font-size: 13px;
+      animation: killFade 4s forwards;
+      border-left: 3px solid #ff4444;
+    }
+    @keyframes killFade {
+      0% { opacity: 1; transform: translateX(0); }
+      70% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(20px); }
+    }
+
+    /* Score display */
+    #score {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 150;
+      pointer-events: none;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #00ff88;
+      background: rgba(0,0,0,0.5);
+      padding: 5px 15px;
+      border-radius: 4px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading">
+    <h1>WW2 DOGCOM</h1>
+    <h2>Spitfire Dogfight Simulator</h2>
+    <div class="subtitle">Procedural 3D Combat Flight</div>
+    <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+    <div class="status" id="loadStatus">Initializing...</div>
+  </div>
+
+  <!-- Crosshair -->
+  <div id="crosshair"></div>
+
+  <!-- Kill feed -->
+  <div id="killfeed"></div>
+
+  <!-- Score -->
+  <div id="score"></div>
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Core Modules -->
+  <script src="core/terrain.js"></script>
+  <script src="core/aircraft.js"></script>
+  <script src="core/sky.js"></script>
+  <script src="core/sound.js"></script>
+  <script src="core/physics.js"></script>
+  <script src="core/input.js"></script>
+
+  <!-- Gameplay Modules -->
+  <script src="gameplay/ai.js"></script>
+  <script src="gameplay/weapons.js"></script>
+  <script src="gameplay/particles.js"></script>
+  <script src="gameplay/camera.js"></script>
+  <script src="gameplay/hud.js"></script>
+
+  <!-- Game Entry Point -->
+  <script src="game/main.js"></script>
+
+  <!-- Loading screen management -->
+  <script>
+    // Progressive loading bar
+    const loadSteps = [
+      'Loading terrain engine...',
+      'Generating landscape...',
+      'Building aircraft models...',
+      'Creating sky & atmosphere...',
+      'Initializing audio engine...',
+      'Computing flight physics...',
+      'Setting up controls...',
+      'Training AI pilots...',
+      'Calibring weapons...',
+      'Generating particle systems...',
+      'Configuring camera modes...',
+      'Rendering HUD...',
+      'Loading mission briefing...',
+      'Ready for takeoff!'
+    ];
+
+    let currentStep = 0;
+    const loaderFill = document.getElementById('loaderFill');
+    const loadStatus = document.getElementById('loadStatus');
+
+    function updateLoader() {
+      if (currentStep < loadSteps.length) {
+        loadStatus.textContent = loadSteps[currentStep];
+        loaderFill.style.width = ((currentStep + 1) / loadSteps.length * 100) + '%';
+        currentStep++;
+        setTimeout(updateLoader, 150 + Math.random() * 200);
+      } else {
+        setTimeout(() => {
+          document.getElementById('loading').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+          }, 1000);
+        }, 500);
+      }
+    }
+
+    // Start loading animation
+    updateLoader();
+
+    // Kill feed helper
+    function addKillFeed(entry) {
+      const feed = document.getElementById('killfeed');
+      const el = document.createElement('div');
+      el.className = 'kill-entry';
+      el.textContent = entry;
+      feed.appendChild(el);
+      setTimeout(() => el.remove(), 4500);
+    }
+    window.addKillFeed = addKillFeed;
+
+    // Score helper
+    function updateScoreDisplay(kills, score) {
+      const el = document.getElementById('score');
+      el.style.display = 'block';
+      el.textContent = `KILLS: ${kills} | SCORE: ${score}`;
+    }
+    window.updateScoreDisplay = updateScoreDisplay;
+  </script>
+</body>
+</html>

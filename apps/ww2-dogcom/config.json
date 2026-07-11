@@ -1,0 +1,18 @@
+{
+  "name": "WW2 Dogcom",
+  "id": "ww2-dogcom",
+  "available": true,
+  "short_desc": "WW2 Dogfight Flight Simulator in the Browser",
+  "author": "Mario",
+  "description": "A fully procedural 3D dogfight simulator with realistic flight physics, AI enemies, dynamic terrain, and volumetric sky effects. Fly a Spitfire against Zero fighters and Mustangs over generated landscapes.",
+  "tipi_version": 2,
+  "version": "v1.0.0",
+  "source": "local",
+  "port": 80,
+  "categories": ["media"],
+  "exposable": true,
+  "supported_architectures": ["arm64", "amd64"],
+  "dynamic_config": false,
+  "created_at": 1751990000000,
+  "updated_at": 1751990000000
+}
